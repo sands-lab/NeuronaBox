@@ -72,7 +72,6 @@ int main(int argc, char *argv[]) {
 
   printf("myrank %d nranks %d hostname %s\n", myRank, nRanks, hostname);
   localRank = 0;
-  ;
 
   ncclUniqueId id;
   ncclComm_t comm;
@@ -84,23 +83,26 @@ int main(int argc, char *argv[]) {
     ncclGetUniqueId(&id);
   MPICHECK(MPI_Bcast((void *)&id, sizeof(id), MPI_BYTE, 0, MPI_COMM_WORLD));
 
-  printf("get id %d at rank %d\n", id, myRank);
+  printf("get id at rank %d \n", myRank);
   // picking a GPU based on localRank, allocate device buffers
   CUDACHECK(cudaSetDevice(localRank));
-  CUDACHECK(cudaMalloc(&sendbuff, size * sizeof(float)));
-  CUDACHECK(cudaMalloc(&recvbuff, size * sizeof(float)));
+  CUDACHECK(cudaMallocManaged(&sendbuff, size * sizeof(float)));
+  CUDACHECK(cudaMallocManaged(&recvbuff, size * sizeof(float)));
   CUDACHECK(cudaStreamCreate(&s));
 
   // initializing NCCL
   NCCLCHECK(ncclCommInitRank(&comm, nRanks, id, myRank));
-
+  sendbuff[0] = myRank + 1;
   // communicating using NCCL
+  printf("before all reduce called\n");
+  printf("send[0] %f at rank %d", sendbuff[0], myRank);
   NCCLCHECK(ncclAllReduce((const void *)sendbuff, (void *)recvbuff, size,
                           ncclFloat, ncclSum, comm, s));
 
   // completing NCCL operation by synchronizing on the CUDA stream
   CUDACHECK(cudaStreamSynchronize(s));
-
+  printf("after all reduce synced\n");
+  printf("recv[0] %f", recvbuff[0]);
   // free device buffers
   CUDACHECK(cudaFree(sendbuff));
   CUDACHECK(cudaFree(recvbuff));

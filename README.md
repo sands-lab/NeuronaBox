@@ -36,3 +36,14 @@ To run multi node job using mpirun, use:
 . ./config.sh
 mpirun -x NCCL_DEBUG_FILE -x NCCL_DEBUG -x NCCL_SOCKET_IFNAME -x NCCL_DEBUG_SUBSYS --prefix $CONDA_PREFIX -np 2 -H [nodename1]:1,[nodename2]:1 --mca pml ob1 --mca btl tcp,self --mca mpi_preconnect_all true ./nccl-tests/build_ori/all_reduce_perf -g 1 -f 2 -b 1K -e 8G
 ```
+
+
+### examples
+
+Simple examples
+
+```
+#compile
+nvcc -lmpi -lnccl -lcudart ex1.cu -o ex1
+mpirun --prefix $CONDA_PREFIX -np 2 -H [node0]1,[node1]:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include ens3f1 ./ex1
+```

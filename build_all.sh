@@ -5,12 +5,13 @@ conda activate ~/env/nccl_mod
 set -ex
 export CUDA_HOME=$CONDA_PREFIX
 
-cd nccl
-rm -rf build
-make -j src.build
-make install PREFIX=$CONDA_PREFIX
+# cd nccl
+# rm -rf build
+# make -j src.build
+# make install PREFIX=$CONDA_PREFIX
+# cd ..
 
-cd ../nccl-tests
+cd nccl-tests
 rm -rf build
 make -j MPI=1 MPI_HOME=$CONDA_PREFIX NCCL_HOME=$CONDA_PREFIX CUDA_HOME=$CONDA_PREFIX 
 rm -rf build_mod
