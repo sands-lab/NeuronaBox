@@ -54,8 +54,16 @@ static void getHostName(char *hostname, int maxlen) {
   }
 }
 
+extern char **environ;
 int main(int argc, char *argv[]) {
-  int size = 32 * 1024 * 1024;
+  int i = 0;
+  while (environ[i]) {
+    if (environ[i][0] == 'N') {
+      printf("%s\n", environ[i]);
+    }
+    i++;
+  }
+  int size = 32;
 
   int myRank, nRanks, localRank = 0;
 
@@ -101,6 +109,7 @@ int main(int argc, char *argv[]) {
 
   // completing NCCL operation by synchronizing on the CUDA stream
   CUDACHECK(cudaStreamSynchronize(s));
+
   printf("after all reduce synced\n");
   printf("recv[0] %f", recvbuff[0]);
   // free device buffers
