@@ -26,4 +26,4 @@ all: $(EXECS)
 
 $(BIN_DIR)/%.exe: $(SRC_DIR)/%.cu ; $(NVCC) $(LDFLAGS) $(NVCC_FLAGS) $< -o $@
 
-clean: ; rm -f $(OBJ_DIR)/*.o $(TARGET)
+clean: ; rm -f $(BIN_DIR)/*.exe
