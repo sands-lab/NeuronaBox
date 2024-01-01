@@ -16,6 +16,8 @@ export NCCL_DEBUG=MOD
 export NCCL_DEBUG_SUBSYS=ALL
 export NCCL_SOCKET_IFNAME=your_if_name
 export NCCL_DEBUG_FILE=your_debug_file.$(date "+%Y-%m-%d %H:%M:%S")_%h:%p%h:%p
+export NCCL_PROTO=Simple
+
 ```
 
 ## Run

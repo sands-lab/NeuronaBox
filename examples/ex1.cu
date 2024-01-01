@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
   sendbuff[0] = myRank + 1;
   // communicating using NCCL
   printf("before all reduce called\n");
-  printf("send[0] %f at rank %d", sendbuff[0], myRank);
+  printf("send[0] %f at rank %d\n", sendbuff[0], myRank);
   NCCLCHECK(ncclAllReduce((const void *)sendbuff, (void *)recvbuff, size,
                           ncclFloat, ncclSum, comm, s));
 
@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
   CUDACHECK(cudaStreamSynchronize(s));
 
   printf("after all reduce synced\n");
-  printf("recv[0] %f", recvbuff[0]);
+  printf("recv[0] %f\n", recvbuff[0]);
   // free device buffers
   CUDACHECK(cudaFree(sendbuff));
   CUDACHECK(cudaFree(recvbuff));
