@@ -48,5 +48,5 @@ Simple examples
 # compile
 nvcc -lmpi -lnccl -lcudart ex1.cu -o ex1
 # run
-mpirun --prefix $CONDA_PREFIX -np 2 -H [node0]1,[node1]:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include ens3f1 ./ex1
+mpirun -x NCCL_DEBUG -x NCCL_DEBUG_SUBSYS -x NCCL_SOCKET_IFNAME -x NCCL_DEBUG_FILE -x NCCL_PROTO --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[node2]:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include ens3f1 './build/ex1 > /tmp/log.$OMPI_COMM_WORLD_RANK'
 ```
