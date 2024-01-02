@@ -1,6 +1,7 @@
 #include "cuda_runtime.h"
 #include "mpi.h"
 #include "nccl.h"
+#include "timer.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -54,6 +55,42 @@ static void getHostName(char *hostname, int maxlen) {
   }
 }
 
+// size is the number of elements
+int run(int myRank, int nRanks, int localRank, int size, ncclComm_t &comm) {
+  float *sendbuff, *recvbuff;
+  cudaStream_t s;
+
+  CUDACHECK(cudaSetDevice(localRank));
+  CUDACHECK(cudaMallocManaged(&sendbuff, size * sizeof(float)));
+  CUDACHECK(cudaMallocManaged(&recvbuff, size * sizeof(float)));
+  CUDACHECK(cudaStreamCreate(&s));
+  // initializing NCCL
+
+  for (int i = 0; i < size; ++i) {
+    sendbuff[0] = myRank + 1;
+  }
+  // communicating using NCCL
+  printf("Before all reduce call\n");
+  printf("send[0] %f at rank %d\n", sendbuff[0], myRank);
+  Timer timer;
+  timer.begin();
+  int loop = 1000;
+  for (int i = 0; i < loop; ++i) {
+    NCCLCHECK(ncclAllReduce((const void *)sendbuff, (void *)recvbuff, size,
+                            ncclFloat, ncclSum, comm, s));
+    // completing NCCL operation by synchronizing on the CUDA stream
+    CUDACHECK(cudaStreamSynchronize(s));
+  }
+  timer.end_print(loop);
+  printf("After all reduce synced\n");
+  printf("recv[0] %f\n", recvbuff[0]);
+
+  CUDACHECK(cudaFree(sendbuff));
+  CUDACHECK(cudaFree(recvbuff));
+
+  return 0;
+}
+
 extern char **environ;
 int main(int argc, char *argv[]) {
   int i = 0;
@@ -63,10 +100,11 @@ int main(int argc, char *argv[]) {
     }
     i++;
   }
-  int size = 32;
-
+  for (int i = 0; i < argc; ++i) {
+    printf("%s\n", argv[i]);
+  }
+  int size = atoi(argv[1]);
   int myRank, nRanks, localRank = 0;
-
   // initializing MPI
   MPICHECK(MPI_Init(&argc, &argv));
   MPICHECK(MPI_Comm_rank(MPI_COMM_WORLD, &myRank));
@@ -82,44 +120,22 @@ int main(int argc, char *argv[]) {
   localRank = 0;
 
   ncclUniqueId id;
-  ncclComm_t comm;
-  float *sendbuff, *recvbuff;
-  cudaStream_t s;
 
   // get NCCL unique ID at rank 0 and broadcast it to all others
-  if (myRank == 0)
+  if (myRank == 0) {
     ncclGetUniqueId(&id);
+  }
   MPICHECK(MPI_Bcast((void *)&id, sizeof(id), MPI_BYTE, 0, MPI_COMM_WORLD));
 
-  printf("get id at rank %d \n", myRank);
-  // picking a GPU based on localRank, allocate device buffers
-  CUDACHECK(cudaSetDevice(localRank));
-  CUDACHECK(cudaMallocManaged(&sendbuff, size * sizeof(float)));
-  CUDACHECK(cudaMallocManaged(&recvbuff, size * sizeof(float)));
-  CUDACHECK(cudaStreamCreate(&s));
+  printf("Get nccl id at rank %d \n", myRank);
 
-  // initializing NCCL
+  ncclComm_t comm;
   NCCLCHECK(ncclCommInitRank(&comm, nRanks, id, myRank));
-  sendbuff[0] = myRank + 1;
-  // communicating using NCCL
-  printf("before all reduce called\n");
-  printf("send[0] %f at rank %d\n", sendbuff[0], myRank);
-  NCCLCHECK(ncclAllReduce((const void *)sendbuff, (void *)recvbuff, size,
-                          ncclFloat, ncclSum, comm, s));
 
-  // completing NCCL operation by synchronizing on the CUDA stream
-  CUDACHECK(cudaStreamSynchronize(s));
+  run(myRank, nRanks, localRank, size, comm);
 
-  printf("after all reduce synced\n");
-  printf("recv[0] %f\n", recvbuff[0]);
-  // free device buffers
-  CUDACHECK(cudaFree(sendbuff));
-  CUDACHECK(cudaFree(recvbuff));
-
-  // finalizing NCCL
   ncclCommDestroy(comm);
 
-  // finalizing MPI
   MPICHECK(MPI_Finalize());
 
   printf("[MPI Rank %d] Success \n", myRank);

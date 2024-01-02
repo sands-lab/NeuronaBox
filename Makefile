@@ -24,6 +24,6 @@ default : all
 
 all: $(EXECS)
 
-$(BIN_DIR)/%.exe: $(SRC_DIR)/%.cu ; $(NVCC) $(LDFLAGS) $(NVCC_FLAGS) $< -o $@
+$(BIN_DIR)/%.exe: $(SRC_DIR)/%.cu $(SRC_DIR)/%.h ; $(NVCC) $(LDFLAGS) $(NVCC_FLAGS) $< -o $@
 
 clean: ; rm -f $(BIN_DIR)/*.exe
