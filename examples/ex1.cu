@@ -2,6 +2,7 @@
 #include "mpi.h"
 #include "nccl.h"
 #include "timer.h"
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,7 +57,8 @@ static void getHostName(char *hostname, int maxlen) {
 }
 
 // size is the number of elements
-int run(int myRank, int nRanks, int localRank, int size, ncclComm_t &comm) {
+int run(int myRank, int nRanks, int localRank, int size, int loop,
+        ncclComm_t &comm) {
   float *sendbuff, *recvbuff;
   cudaStream_t s;
 
@@ -74,7 +76,6 @@ int run(int myRank, int nRanks, int localRank, int size, ncclComm_t &comm) {
   printf("send[0] %f at rank %d\n", sendbuff[0], myRank);
   Timer timer;
   timer.begin();
-  int loop = 1000;
   for (int i = 0; i < loop; ++i) {
     NCCLCHECK(ncclAllReduce((const void *)sendbuff, (void *)recvbuff, size,
                             ncclFloat, ncclSum, comm, s));
@@ -100,10 +101,15 @@ int main(int argc, char *argv[]) {
   //   //}
   //   i++;
   // }
-  for (int i = 0; i < argc; ++i) {
-    printf("%s\n", argv[i]);
-  }
+  assert(argc == 3);
+
+  // for (int i = 0; i < argc; ++i) {
+  //   printf("%s\n", argv[i]);
+  // }
   int size = atoi(argv[1]);
+  int loop = atoi(argv[2]);
+  printf("size = %d, loop = %d\n", size, loop);
+
   int myRank, nRanks, localRank = 0;
   // initializing MPI
   MPICHECK(MPI_Init(&argc, &argv));
@@ -132,7 +138,7 @@ int main(int argc, char *argv[]) {
   ncclComm_t comm;
   NCCLCHECK(ncclCommInitRank(&comm, nRanks, id, myRank));
 
-  run(myRank, nRanks, localRank, size, comm);
+  run(myRank, nRanks, localRank, size, loop, comm);
 
   ncclCommDestroy(comm);
 
