@@ -34,12 +34,6 @@ mkdir log
 
 To run multi node job using mpirun, use:
 
-```
-. ./config.sh
-mpirun -x NCCL_DEBUG_FILE -x NCCL_DEBUG -x NCCL_SOCKET_IFNAME -x NCCL_DEBUG_SUBSYS --prefix $CONDA_PREFIX -np 2 -H [nodename1]:1,[nodename2]:1 --mca pml ob1 --mca btl tcp,self --mca mpi_preconnect_all true ./nccl-tests/build_ori/all_reduce_perf -g 1 -f 2 -b 1K -e 8G
-```
-
-
 ### examples
 
 Simple example: 
@@ -54,10 +48,10 @@ run with debug
 
 ```
 . ./config.sh
-mpirun -x NCCL_DEBUG -x NCCL_DEBUG_SUBSYS -x NCCL_SOCKET_IFNAME -x NCCL_DEBUG_FILE -x NCCL_PROTO --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[node2]:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include ens3f1 sh -c "./build/ex1 > /tmp/nccl-emulator/log_debug$(date "+%m-%d-%H:%M:%S")"
+mpirun -x NCCL_DEBUG -x NCCL_DEBUG_SUBSYS -x NCCL_SOCKET_IFNAME -x NCCL_DEBUG_FILE -x NCCL_PROTO -x NCCL_TREE_THRESHOLD --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[node2]:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include ens3f1 sh -c "./build/ex1 > /tmp/nccl-emulator/log_debug$(date "+%m-%d-%H:%M:%S")"
 ```
 
 run release
 ```
-mpirun -x NCCL_DEBUG=VERSION -x NCCL_DEBUG_SUBSYS=INIT -x NCCL_SOCKET_IFNAME -x NCCL_DEBUG_FILE -x NCCL_PROTO --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[node2]:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include ens3f1 sh -c "./build/ex1 > /tmp/nccl-emulator/log_release$(date "+%m-%d-%H:%M:%S")"
+mpirun -x NCCL_DEBUG=VERSION -x NCCL_DEBUG_SUBSYS=INIT -x NCCL_SOCKET_IFNAME -x NCCL_DEBUG_FILE -x NCCL_PROTO -x NCCL_TREE_THRESHOLD --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[node2]:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include ens3f1 sh -c "./build/ex1 > /tmp/nccl-emulator/log_release$(date "+%m-%d-%H:%M:%S")"
 ```
