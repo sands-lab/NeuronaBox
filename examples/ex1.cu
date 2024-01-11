@@ -72,7 +72,6 @@ int run(int myRank, int nRanks, int localRank, int size, int loop,
     sendbuff[0] = myRank + 1;
   }
   // communicating using NCCL
-  printf("Before all reduce call\n");
   printf("send[0] %f at rank %d\n", sendbuff[0], myRank);
   Timer timer;
   timer.begin();
@@ -83,8 +82,7 @@ int run(int myRank, int nRanks, int localRank, int size, int loop,
     CUDACHECK(cudaStreamSynchronize(s));
   }
   timer.end_print(loop);
-  printf("After all reduce synced\n");
-  printf("recv[0] %f\n", recvbuff[0]);
+  printf("recv[0] %f at rank %d\n", recvbuff[0], myRank);
 
   CUDACHECK(cudaFree(sendbuff));
   CUDACHECK(cudaFree(recvbuff));
