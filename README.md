@@ -19,6 +19,8 @@ export NCCL_DEBUG_FILE=your_debug_file.$(date "+%Y-%m-%d %H:%M:%S")_%h:%p%h:%p
 export NCCL_PROTO=Simple
 export NCCL_ALGO=Ring
 export NCCL_BUILD_PATH=your_nccl_build_path
+export NVCC_GENCODE="-gencode=arch=compute_[your_compute],code=sm_[your_sm]"
+export ONLY_FUNCS="AllReduce Sum (f16|f32) RING SIMPLE"
 ```
 
 ## Run
