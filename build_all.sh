@@ -20,6 +20,7 @@ rm -rf build
 make -j src.build
 make install PREFIX=$CONDA_PREFIX
 cd -
+cp $NCCL_BUILD_PATH/nccl/build/obj/device/gensrc/host_table.cc ./build
 
 # # cd nccl-tests
 # rm -rf build
