@@ -45,4 +45,6 @@ cp $NCCL_BUILD_PATH/nccl/build/obj/device/gensrc/host_table.cc ./build
 
 nvcc -lmpi -lnccl -lcudart ./examples/ex1.cu -o ./build/ex1
 
+mkdir -p /tmp/nccl-emulator
+
 set +ex
