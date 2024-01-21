@@ -76,10 +76,15 @@ int run(int myRank, int nRanks, int localRank, int size, int loop,
   Timer timer;
   timer.begin();
   for (int i = 0; i < loop; ++i) {
+    printf("rk%d loop %dth start\n", myRank, i);
     NCCLCHECK(ncclAllReduce((const void *)sendbuff, (void *)recvbuff, size,
                             ncclFloat, ncclSum, comm, s));
     // completing NCCL operation by synchronizing on the CUDA stream
     CUDACHECK(cudaStreamSynchronize(s));
+    // if (myRank == 0) {
+    //   usleep(1000000);
+    // }
+    printf("rk%d loop %dth finished\n", myRank, i);
   }
   timer.end_print(loop);
   printf("recv[0] %f at rank %d\n", recvbuff[0], myRank);
@@ -92,7 +97,7 @@ int run(int myRank, int nRanks, int localRank, int size, int loop,
 
 extern char **environ;
 int main(int argc, char *argv[]) {
-  int i = 0;
+  // int i = 0;
   // while (environ[i]) {
   //   // if (environ[i][0] == 'N') {
   //   printf("%s\n", environ[i]);
@@ -114,11 +119,16 @@ int main(int argc, char *argv[]) {
   MPICHECK(MPI_Comm_rank(MPI_COMM_WORLD, &myRank));
   MPICHECK(MPI_Comm_size(MPI_COMM_WORLD, &nRanks));
 
+  if (myRank == 0) {
+    setenv("NCCL_KERNEL_BYPASS", "1", 1);
+  }
+  printf("NCCL_KERNEL_BYPASS = %s\n", getenv("NCCL_KERNEL_BYPASS"));
+
   // calculating localRank based on hostname which is used in selecting a GPU
-  uint64_t hostHashs[nRanks];
+  // uint64_t hostHashs[nRanks];
   char hostname[1024];
   getHostName(hostname, 1024);
-  hostHashs[myRank] = getHostHash(hostname);
+  // hostHashs[myRank] = getHostHash(hostname);
 
   printf("myrank %d nranks %d hostname %s\n", myRank, nRanks, hostname);
   localRank = 0;
