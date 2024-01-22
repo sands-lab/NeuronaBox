@@ -75,7 +75,6 @@ int run(int myRank, int nRanks, int localRank, int size, int loop,
                             ncclFloat, ncclSum, comm, s));
     // completing NCCL operation by synchronizing on the CUDA stream
     CUDACHECK(cudaStreamSynchronize(s));
-    NCCLCHECK(ncclModSync(comm, s));
     // if (myRank == 0) {
     //   usleep(1000000);
     // }
