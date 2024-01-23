@@ -44,11 +44,9 @@ int main(int argc, char *argv[]) {
     CUDACHECK(cudaStreamCreate(s + i));
   }
 
-  printf("before init all\n");
   // initializing NCCL
   NCCLCHECK(ncclCommInitAll(comms, nDev, devs));
 
-  printf("after init all\n");
   // calling NCCL communication API. Group API is required when using
   // multiple devices per thread
   NCCLCHECK(ncclGroupStart());

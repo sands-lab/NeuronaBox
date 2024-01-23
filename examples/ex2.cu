@@ -139,18 +139,14 @@ int main(int argc, char *argv[]) {
   }
   MPICHECK(MPI_Bcast((void *)&id, sizeof(id), MPI_BYTE, 0, MPI_COMM_WORLD));
 
-  printf("before nccl group start at rank %d\n", myMPIRank);
   // initializing NCCL, group API is required around ncclCommInitRank as it is
   // called across multiple GPUs in each thread/process
   NCCLCHECK(ncclGroupStart());
   for (int i = 0; i < nDev; i++) {
     CUDACHECK(cudaSetDevice(i));
-    printf("trace call ncclCommitRank: rank %d nRanks %d\n", myMPIRank, nRanks);
     NCCLCHECK(ncclCommInitRank(comms + i, nRanks, id, myMPIRank * nDev + i));
   }
   NCCLCHECK(ncclGroupEnd());
-
-  printf("after nccl group start at rank %d\n", myMPIRank);
 
   vector<int> myRanks;
   for (int i = 0; i < nDev; i++) {
