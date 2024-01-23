@@ -58,3 +58,7 @@ run release
 ```
 mpirun -x NCCL_DEBUG=VERSION -x NCCL_DEBUG_SUBSYS=INIT -x NCCL_SOCKET_IFNAME -x NCCL_DEBUG_FILE -x NCCL_ALGO -x NCCL_TREE_THRESHOLD --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[node2]:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include ens3f1 sh -c "./build/ex1 [#size] [#loop] > /tmp/nccl-emulator/log_release$(date "+%m-%d-%H:%M:%S")"
 ```
+
+<!-- mpirun -x NCCL_DEBUG -x NCCL_DEBUG_SUBSYS -x NCCL_SOCKET_IFNAME -x NCCL_DEBUG_FILE -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H mcnode02:1,mcnode06:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include ens3f1 sh -c "/mnt/scratch/liub0a/nccl-emulator/ex1 100000 10" -->
+
+ <!-- mpirun -x NCCL_DEBUG -x NCCL_DEBUG_SUBSYS -x NCCL_SOCKET_IFNAME -x NCCL_DEBUG_FILE -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H mcnode39:1,mcnode40:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include enp1s0f0  sh -c "./build/ex2 1000 1 2" -->
