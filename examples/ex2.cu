@@ -2,8 +2,10 @@
 #include "cuda_runtime.h"
 #include "mpi.h"
 #include "nccl.h"
+#include <cstdlib>
 #include <stdint.h>
 #include <stdio.h>
+#include <string>
 #include <unistd.h>
 #include <vector>
 using namespace std;
@@ -111,7 +113,6 @@ int main(int argc, char *argv[]) {
   int loop = atoi(argv[2]);
   int ndev_per_node = atoi(argv[3]);
 
-  setenv("NCCL_KERNEL_BYPASS", "0", 1);
   printf("size %d loop %d ndev_per_node %d\n", size, loop, ndev_per_node);
 
   int myMPIRank, nMPIRanks;
@@ -120,6 +121,17 @@ int main(int argc, char *argv[]) {
   MPICHECK(MPI_Init(&argc, &argv));
   MPICHECK(MPI_Comm_rank(MPI_COMM_WORLD, &myMPIRank));
   MPICHECK(MPI_Comm_size(MPI_COMM_WORLD, &nMPIRanks));
+
+  //  if (myMPIRank == 0) {
+  if (0) {
+    setenv("NCCL_KERNEL_BYPASS", "1", 1);
+  } else {
+    setenv("NCCL_KERNEL_BYPASS", "0", 1);
+  }
+  setenv("MY_MPI_RANK", std::to_string(myMPIRank).c_str(), 1);
+  setenv("N_MPI_RANKS", std::to_string(nMPIRanks).c_str(), 1);
+
+  printf("NCCL_KERNEL_BYPASS = %s\n", getenv("NCCL_KERNEL_BYPASS"));
 
   int totalDev = nMPIRanks * ndev_per_node; // = nRanks
   int nRanks = totalDev;

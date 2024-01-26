@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include <unistd.h>
 
 #define MPICHECK(cmd)                                                          \
@@ -113,8 +114,12 @@ int main(int argc, char *argv[]) {
 
   if (myRank == 0) {
     setenv("NCCL_KERNEL_BYPASS", "1", 1);
+  } else {
+    setenv("NCCL_KERNEL_BYPASS", "0", 1);
   }
   printf("NCCL_KERNEL_BYPASS = %s\n", getenv("NCCL_KERNEL_BYPASS"));
+  setenv("MY_MPI_RANK", std::to_string(myRank).c_str(), 1);
+  setenv("N_MPI_RANKS", std::to_string(nRanks).c_str(), 1);
 
   // calculating localRank based on hostname which is used in selecting a GPU
   // uint64_t hostHashs[nRanks];
