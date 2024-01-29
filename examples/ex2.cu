@@ -122,8 +122,7 @@ int main(int argc, char *argv[]) {
   MPICHECK(MPI_Comm_rank(MPI_COMM_WORLD, &myMPIRank));
   MPICHECK(MPI_Comm_size(MPI_COMM_WORLD, &nMPIRanks));
 
-  //  if (myMPIRank == 0) {
-  if (0) {
+  if (myMPIRank == 0) {
     setenv("NCCL_KERNEL_BYPASS", "1", 1);
   } else {
     setenv("NCCL_KERNEL_BYPASS", "0", 1);
