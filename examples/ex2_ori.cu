@@ -91,7 +91,6 @@ int run(int nRanks, vector<int> myRanks, int size, int loop, int mpirank) {
     for (int i = 0; i < nDev; i++) {
       CUDACHECK(cudaStreamSynchronize(s[i]));
     }
-    NCCLCHECK(ncclModSync());
   }
 
   for (int i = 0; i < nDev; ++i) {
