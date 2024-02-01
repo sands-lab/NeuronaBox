@@ -4,3 +4,6 @@
 [submodule "nccl"]
 	path = nccl
 	url = git@github.com:livingshade/nccl.git
+[submodule "pytorch"]
+	path = pytorch
+	url = git@github.com:livingshade/pytorch.git
