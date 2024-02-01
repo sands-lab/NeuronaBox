@@ -17,7 +17,7 @@ def main():
   print("Rank {} Initialized".format(WORLD_RANK))
   device = torch.device("cuda:{}".format(LOCAL_RANK))
   # Generate a random tensor
-  tensor = torch.rand(10000, dtype=torch.float32, device=device)
+  tensor = torch.rand(1000, dtype=torch.float32, device=device)
   print("before allreduce", tensor[:10])
   # Perform all-reduce
   all_reduce(tensor)
