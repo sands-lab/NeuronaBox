@@ -1,7 +1,7 @@
 #!/usr/bin/bash -i
 eval "$(conda shell.bash hook)" 
-conda activate ~/env/nccl_mod
-
+# conda activate ~/env/nccl_mod
+conda activate ~/env/emu
 
 
 set -ex
