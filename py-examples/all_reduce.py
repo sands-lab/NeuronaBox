@@ -25,10 +25,11 @@ def all_reduce(tensor):
 def main():
   global myrank, nranks
   argc = len(os.sys.argv)
-  assert argc == 4, "Usage: {} <rank> <nranks> <loop>".format(os.sys.argv[0])
+  assert argc == 5, "Usage: {} <rank> <nranks> <loop> <count>".format(os.sys.argv[0])
   myrank = int(os.sys.argv[1])
   nranks = int(os.sys.argv[2])
   loop = int(os.sys.argv[3])
+  count = int(os.sys.argv[4])
   init()
   # Initialize distributed training
   print("Rank {} Initializing".format(myrank))
@@ -38,12 +39,12 @@ def main():
   
   for i in range(loop):
     # Generate a random tensor
-    tensor = torch.rand(1000, dtype=torch.float32, device=device)
-    print("before allreduce", tensor[:10])
+    tensor = torch.rand(count, dtype=torch.float32, device=device)
+    print("before allreduce", tensor[:3])
     # Perform all-reduce
     all_reduce(tensor)
     # Print the result
-    print("after allreduce", tensor[:10])
+    print("after allreduce", tensor[:3])
 
 if __name__ == '__main__':
   main()
