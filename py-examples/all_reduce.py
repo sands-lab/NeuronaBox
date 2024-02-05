@@ -6,6 +6,15 @@ LOCAL_RANK = int(os.environ['LOCAL_RANK'])
 WORLD_SIZE = int(os.environ['WORLD_SIZE'])
 WORLD_RANK = int(os.environ['RANK'])
 
+def init():
+  myrank = int(os.environ['RANK'])
+  nranks = int(os.environ['WORLD_SIZE'])
+  if myrank == 0:
+    os.environ["MOD_KERNEL_BYPASS"] = "1"
+    os.environ["MOD_MY_NODE"] = str(myrank)
+    os.environ["MOD_NODES"] = str(nranks)
+  os.environ['MOD_N']
+
 def all_reduce(tensor):
   """Performs an all-reduce operation on the given tensor."""
   dist.all_reduce(tensor)

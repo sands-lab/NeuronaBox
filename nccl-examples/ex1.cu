@@ -53,7 +53,6 @@ int run(int myRank, int nRanks, int localRank, int size, int loop,
         ncclComm_t &comm) {
   float *sendbuff, *recvbuff;
   cudaStream_t s1, s2;
-
   CUDACHECK(cudaSetDevice(localRank));
   CUDACHECK(cudaMallocManaged(&sendbuff, size * sizeof(float)));
   CUDACHECK(cudaMallocManaged(&recvbuff, size * sizeof(float)));
@@ -61,7 +60,6 @@ int run(int myRank, int nRanks, int localRank, int size, int loop,
   CUDACHECK(cudaStreamCreate(&s2));
 
   // initializing NCCL
-
   for (int i = 0; i < size; ++i) {
     sendbuff[0] = myRank + 1;
   }
@@ -75,9 +73,8 @@ int run(int myRank, int nRanks, int localRank, int size, int loop,
     NCCLCHECK(ncclAllReduce((const void *)sendbuff, (void *)recvbuff, size,
                             ncclFloat, ncclSum, comm, s));
     CUDACHECK(cudaStreamSynchronize(s));
-    NCCLCHECK(ncclModSync());
 
-    //    printf("rk%d loop %dth finished\n", myRank, i);
+    printf("rk%d loop %dth finished\n", myRank, i);
   }
   timer.end_print(loop);
   printf("recv[0] %f at rank %d\n", recvbuff[0], myRank);
@@ -90,6 +87,7 @@ int run(int myRank, int nRanks, int localRank, int size, int loop,
 
 extern char **environ;
 int main(int argc, char *argv[]) {
+  setbuf(stdout, NULL);
   // int i = 0;
   // while (environ[i]) {
   //   // if (environ[i][0] == 'N') {
@@ -113,13 +111,13 @@ int main(int argc, char *argv[]) {
   MPICHECK(MPI_Comm_size(MPI_COMM_WORLD, &nRanks));
 
   if (myRank == 0) {
-    setenv("NCCL_KERNEL_BYPASS", "1", 1);
+    setenv("MOD_KERNEL_BYPASS", "1", 1);
   } else {
-    setenv("NCCL_KERNEL_BYPASS", "0", 1);
+    setenv("MOD_KERNEL_BYPASS", "0", 1);
   }
-  printf("NCCL_KERNEL_BYPASS = %s\n", getenv("NCCL_KERNEL_BYPASS"));
-  setenv("MY_MPI_RANK", std::to_string(myRank).c_str(), 1);
-  setenv("N_MPI_RANKS", std::to_string(nRanks).c_str(), 1);
+  printf("MOD_KERNEL_BYPASS = %s\n", getenv("MOD_KERNEL_BYPASS"));
+  setenv("MOD_N_MPI_RANKS", std::to_string(nRanks).c_str(), 1);
+  setenv("MOD_MY_MPI_RANK", std::to_string(myRank).c_str(), 1);
 
   // calculating localRank based on hostname which is used in selecting a GPU
   // uint64_t hostHashs[nRanks];
@@ -142,7 +140,6 @@ int main(int argc, char *argv[]) {
 
   ncclComm_t comm;
   NCCLCHECK(ncclCommInitRank(&comm, nRanks, id, myRank));
-
   run(myRank, nRanks, localRank, size, loop, comm);
 
   ncclCommDestroy(comm);
