@@ -95,9 +95,8 @@ def average_gradients(model):
     """ Gradient averaging. """
     size = float(dist.get_world_size())
     for param in model.parameters():
-        if type(param) is torch.Tensor:
-            dist.all_reduce(param.grad.data, op=dist.reduce_op.SUM, group=0)
-            param.grad.data /= size
+        dist.all_reduce(param.grad.data, op=dist.reduce_op.SUM)
+        param.grad.data /= size
 
 
 def run(rank, size):
@@ -127,9 +126,9 @@ def run(rank, size):
               epoch_loss / num_batches)
 
 
-def init_processes(rank, size, fn, backend='nccl'):
+def init_processes(rank, size, fn):
     """ Initialize the distributed environment. """
-    dist.init_process_group(backend, rank=rank, world_size=size)
+    dist.init_process_group(backend='nccl')
     print("Rank ", dist.get_rank(), " Initialized")
     fn(rank, size)
 
@@ -141,6 +140,9 @@ if __name__ == "__main__":
     nranks = int(os.sys.argv[2])
     os.environ["MOD_MY_MPI_RANK"] = str(myrank)
     os.environ["MOD_N_MPI_RANKS"] = str(nranks)
+    os.environ["LOCAL_RANK"] = "0"
+    os.environ["RANK"] = str(myrank)
+    os.environ["WORLD_SIZE"] = str(nranks)
     if myrank == 0:
         os.environ["MOD_KERNEL_BYPASS"] = "1"
-    init_processes(myrank, nranks, run, "nccl")
+    init_processes(myrank, nranks, run)
