@@ -23,6 +23,7 @@ def example():
     # create local model
     model = Net()
     model.to(local_rank)
+    
     # construct DDP model
     ddp_model = DDP(model, device_ids=[local_rank])
     # define loss function and optimizer
@@ -56,4 +57,4 @@ if __name__ == "__main__":
     dist.init_process_group("nccl")
     print("Rank ", myrank, " Initialized")
     
-    example(myrank, nranks)
+    example()
