@@ -10,7 +10,7 @@ import os
 
 import torch
 from torch.utils.data import Dataset
-
+import time
 class MyTrainDataset(Dataset):
     def __init__(self, size):
         self.size = size
@@ -47,9 +47,12 @@ class Trainer:
         self.model = DDP(self.model, device_ids=[self.local_rank])
 
     def _run_batch(self, source, targets):
+        print(f"[GPU{self.global_rank}] Running batch")
         self.optimizer.zero_grad()
+        print(f"Running forward pass on GPU{self.global_rank}")
         output = self.model(source)
         loss = F.cross_entropy(output, targets)
+        print(f"Running backward pass on GPU{self.global_rank}")
         loss.backward()
         self.optimizer.step()
 
@@ -102,5 +105,7 @@ if __name__ == "__main__":
     os.environ["LOCAL_RANK"] = "0"
     os.environ["RANK"] = str(myrank)
     os.environ["WORLD_SIZE"] = str(nranks)
+    # if myrank == 0:
+    #     os.environ["MOD_KERNEL_BYPASS"] = "1"
     # total epochs, batch size
     main(1, 32)
