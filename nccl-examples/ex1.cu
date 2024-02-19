@@ -73,7 +73,7 @@ int run(int myRank, int nRanks, int localRank, int size, int loop,
     NCCLCHECK(ncclAllReduce((const void *)sendbuff, (void *)recvbuff, size,
                             ncclFloat, ncclSum, comm, s));
     CUDACHECK(cudaStreamSynchronize(s));
-
+    NCCLCHECK(ncclModStreamSync(s));
     printf("rk%d loop %dth finished\n", myRank, i);
   }
   timer.end_print(loop);
