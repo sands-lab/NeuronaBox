@@ -23,8 +23,10 @@ class MyTrainDataset(Dataset):
         return self.data[index]
     
 def ddp_setup():
-    init_process_group(backend="nccl")
+    print("Initializing process group for rank", os.environ["RANK"], "and world size", os.environ["WORLD_SIZE"])
     torch.cuda.set_device(int(os.environ["LOCAL_RANK"]))
+    init_process_group(backend="nccl")
+    print("Process group initialized")
 
 class Trainer:
     def __init__(
@@ -71,7 +73,7 @@ class Trainer:
 
 
 def load_train_objs():
-    train_set = MyTrainDataset(256)  # load your dataset
+    train_set = MyTrainDataset(32)  # load your dataset
     model = torch.nn.Linear(20, 1)  # load your model
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     return train_set, model, optimizer
@@ -105,7 +107,9 @@ if __name__ == "__main__":
     os.environ["LOCAL_RANK"] = "0"
     os.environ["RANK"] = str(myrank)
     os.environ["WORLD_SIZE"] = str(nranks)
-    # if myrank == 0:
-    #     os.environ["MOD_KERNEL_BYPASS"] = "1"
+
+    if myrank == 0:
+        os.environ["MOD_KERNEL_BYPASS"] = "1"
+    
     # total epochs, batch size
     main(1, 32)
