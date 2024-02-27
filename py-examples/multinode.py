@@ -11,6 +11,11 @@ import os
 import torch
 from torch.utils.data import Dataset
 import time
+
+ITER = 8
+BATCH_SIZE = 256
+DATA_SIZE = ITER * BATCH_SIZE
+
 class MyTrainDataset(Dataset):
     def __init__(self, size):
         self.size = size
@@ -49,18 +54,18 @@ class Trainer:
         self.model = DDP(self.model, device_ids=[self.local_rank])
 
     def _run_batch(self, source, targets):
-        print(f"[GPU{self.global_rank}] Running batch")
         self.optimizer.zero_grad()
-        print(f"Running forward pass on GPU{self.global_rank}")
+        print(f"[pytorch:{self.global_rank}] forward pass")
         output = self.model(source)
         loss = F.cross_entropy(output, targets)
-        print(f"Running backward pass on GPU{self.global_rank}")
+        print(f"[pytorch:{self.global_rank}] backward pass")
         loss.backward()
         self.optimizer.step()
+        print(f"[pytorch:{self.global_rank}] batch done")
 
     def _run_epoch(self, epoch):
         b_sz = len(next(iter(self.train_data))[0])
-        print(f"[GPU{self.global_rank}] Epoch {epoch} | Batchsize: {b_sz} | Steps: {len(self.train_data)}")
+        print(f"[pytorch:{self.global_rank}] Epoch {epoch} | Batchsize: {b_sz} | Steps: {len(self.train_data)}")
         self.train_data.sampler.set_epoch(epoch)
         for source, targets in self.train_data:
             source = source.to(self.local_rank)
@@ -73,7 +78,8 @@ class Trainer:
 
 
 def load_train_objs():
-    train_set = MyTrainDataset(32)  # load your dataset
+    global DATA_SIZE
+    train_set = MyTrainDataset(DATA_SIZE)  # load your dataset
     model = torch.nn.Linear(20, 1)  # load your model
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     return train_set, model, optimizer
@@ -112,4 +118,4 @@ if __name__ == "__main__":
         os.environ["MOD_KERNEL_BYPASS"] = "1"
     
     # total epochs, batch size
-    main(1, 32)
+    main(1, BATCH_SIZE)
