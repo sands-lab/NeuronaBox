@@ -13,7 +13,7 @@ from torch.utils.data import Dataset
 import time
 
 ITER = 8
-BATCH_SIZE = 256
+BATCH_SIZE = 32
 DATA_SIZE = ITER * BATCH_SIZE
 
 class MyTrainDataset(Dataset):
@@ -53,7 +53,7 @@ class Trainer:
 
         self.model = DDP(self.model, device_ids=[self.local_rank])
 
-    def _run_batch(self, source, targets):
+    def _run_batch(self, source, targets, index):
         self.optimizer.zero_grad()
         print(f"[pytorch:{self.global_rank}] forward pass")
         output = self.model(source)
@@ -61,16 +61,18 @@ class Trainer:
         print(f"[pytorch:{self.global_rank}] backward pass")
         loss.backward()
         self.optimizer.step()
-        print(f"[pytorch:{self.global_rank}] batch done")
+        print(f"[pytorch:{self.global_rank}] {index}th batch done")
 
     def _run_epoch(self, epoch):
         b_sz = len(next(iter(self.train_data))[0])
-        print(f"[pytorch:{self.global_rank}] Epoch {epoch} | Batchsize: {b_sz} | Steps: {len(self.train_data)}")
+        print(f"[pytorch:{self.global_rank}] epoch {epoch}")
         self.train_data.sampler.set_epoch(epoch)
+        index = 0
         for source, targets in self.train_data:
             source = source.to(self.local_rank)
             targets = targets.to(self.local_rank)
-            self._run_batch(source, targets)
+            self._run_batch(source, targets, index)
+            index += 1
  
     def train(self, max_epochs: int):
         for epoch in range(self.epochs_run, max_epochs):
@@ -118,4 +120,4 @@ if __name__ == "__main__":
         os.environ["MOD_KERNEL_BYPASS"] = "1"
     
     # total epochs, batch size
-    main(1, BATCH_SIZE)
+    main(ITER, BATCH_SIZE)
