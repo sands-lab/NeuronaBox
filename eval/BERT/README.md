@@ -5,13 +5,12 @@ We fine-tune a pretrained BERT model on [SQuAD v1.1](https://rajpurkar.github.io
 Aside from PyTorch with OmniReduce, ensure you have `tqdm`, `dllogger` and `apex`.
 
 **Install Dependencies** :
-
+    pip install six
     pip install tqdm
     pip install nvidia-pyindex
     pip install nvidia-dllogger
     git clone https://github.com/NVIDIA/apex
     cd apex
-    git reset --hard a651e2c2
     pip install -v --disable-pip-version-check --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
 
 **Dowload model checkpoint** :
@@ -22,20 +21,12 @@ Aside from PyTorch with OmniReduce, ensure you have `tqdm`, `dllogger` and `apex
     cd ../../ && mkdir -p results
 
 ## BERT Training
-### 1. Create and edit omnireduce.cfg
-- Read this [example](https://github.com/sands-lab/omnireduce/tree/master/omnireduce-RDMA/example) and create the your own `omnireduce.cfg` according to the cluster information.(Note: `buffer_size` needs to be set 2048 for BERT.)
-- Copy the `omnireduce.cfg` to all the aggregators and workers. And `omnireduce.cfg` needs to be in the same directory as the PyTorch script (for workers) or program `aggregator` (for aggregators).
-### 2. Run aggregators
-Aggregator 0 and aggregator 1:
 
-    cd ./omnireduce-RDMA/example
-    ./aggregator
-
-### 3. Run workers
+###  Run workers
 Worker 0:
 
-    CUDA_VISIBLE_DEVICES=0 OMPI_COMM_WORLD_SIZE=2 OMPI_COMM_WORLD_RANK=0 OMPI_COMM_WORLD_LOCAL_RANK=0 ./run.sh --init tcp://172.18.0.51:3333 --backend nccl 
+    CUDA_VISIBLE_DEVICES=0 OMPI_COMM_WORLD_SIZE=2 OMPI_COMM_WORLD_RANK=0 OMPI_COMM_WORLD_LOCAL_RANK=0 ./run.sh --init tcp://ip:port --backend nccl 
 
 Worker 1:
 
-    CUDA_VISIBLE_DEVICES=0 GLOO_SOCKET_IFNAME=eth0 OMPI_COMM_WORLD_SIZE=2 OMPI_COMM_WORLD_RANK=1 OMPI_COMM_WORLD_LOCAL_RANK=0 ./run.sh --init tcp://172.18.0.51:3333 --backend nccl
+    CUDA_VISIBLE_DEVICES=0 GLOO_SOCKET_IFNAME=eth0 OMPI_COMM_WORLD_SIZE=2 OMPI_COMM_WORLD_RANK=1 OMPI_COMM_WORLD_LOCAL_RANK=0 ./run.sh --init tcp://ip:port --backend nccl

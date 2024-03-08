@@ -9,23 +9,13 @@ from torch.distributed import init_process_group, destroy_process_group
 import os
 
 import torch
-from torch.utils.data import Dataset
 import time
+
+from models import Model0, Model1, Dataset0, Dataset1
 
 ITER = 8
 BATCH_SIZE = 32
 DATA_SIZE = ITER * BATCH_SIZE
-
-class MyTrainDataset(Dataset):
-    def __init__(self, size):
-        self.size = size
-        self.data = [(torch.rand(20), torch.rand(1)) for _ in range(size)]
-
-    def __len__(self):
-        return self.size
-    
-    def __getitem__(self, index):
-        return self.data[index]
     
 def ddp_setup():
     print("Initializing process group for rank", os.environ["RANK"], "and world size", os.environ["WORLD_SIZE"])
@@ -64,7 +54,6 @@ class Trainer:
         print(f"[pytorch:{self.global_rank}] {index}th batch done")
 
     def _run_epoch(self, epoch):
-        b_sz = len(next(iter(self.train_data))[0])
         print(f"[pytorch:{self.global_rank}] epoch {epoch}")
         self.train_data.sampler.set_epoch(epoch)
         index = 0
@@ -81,8 +70,10 @@ class Trainer:
 
 def load_train_objs():
     global DATA_SIZE
-    train_set = MyTrainDataset(DATA_SIZE)  # load your dataset
-    model = torch.nn.Linear(20, 1)  # load your model
+    train_set = Dataset0(DATA_SIZE) 
+    model = Model0((20,),(1,)) 
+    # train_set = Dataset1(DATA_SIZE) 
+    # model = Model1((20,),(10,))   
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     return train_set, model, optimizer
 
