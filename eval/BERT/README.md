@@ -5,13 +5,16 @@ We fine-tune a pretrained BERT model on [SQuAD v1.1](https://rajpurkar.github.io
 Aside from PyTorch with OmniReduce, ensure you have `tqdm`, `dllogger` and `apex`.
 
 **Install Dependencies** :
+    pip3 install --upgrade pip
+    pip3 install packaging
     pip install six
     pip install tqdm
     pip install nvidia-pyindex
     pip install nvidia-dllogger
+
     git clone https://github.com/NVIDIA/apex
     cd apex
-    pip install -v --disable-pip-version-check --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+    pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./
 
 **Dowload model checkpoint** :
 
@@ -24,9 +27,9 @@ Aside from PyTorch with OmniReduce, ensure you have `tqdm`, `dllogger` and `apex
 
 ###  Run workers
 Worker 0:
-
+    . ../../config.sh
     CUDA_VISIBLE_DEVICES=0 OMPI_COMM_WORLD_SIZE=2 OMPI_COMM_WORLD_RANK=0 OMPI_COMM_WORLD_LOCAL_RANK=0 ./run.sh --init tcp://ip:port --backend nccl 
 
 Worker 1:
-
+    . ../../config.sh
     CUDA_VISIBLE_DEVICES=0 GLOO_SOCKET_IFNAME=eth0 OMPI_COMM_WORLD_SIZE=2 OMPI_COMM_WORLD_RANK=1 OMPI_COMM_WORLD_LOCAL_RANK=0 ./run.sh --init tcp://ip:port --backend nccl
