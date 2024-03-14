@@ -14,7 +14,7 @@ import time
 from models import Model0, Model1, Dataset0, Dataset1
 
 ITER = 8
-BATCH_SIZE = 32
+BATCH_SIZE = 128
 DATA_SIZE = ITER * BATCH_SIZE
     
 def ddp_setup():

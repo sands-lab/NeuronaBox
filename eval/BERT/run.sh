@@ -15,6 +15,9 @@
 
 #OUT_DIR=/results/SQuAD
 
+eval "$(conda shell.bash hook)" 
+conda activate $ENV_PATH
+
 echo "Container nvidia build = " $NVIDIA_BUILD_ID
 nccl_ib_disable=0
 BACKEND="nccl"
