@@ -27,9 +27,12 @@ Aside from PyTorch with OmniReduce, ensure you have `tqdm`, `dllogger` and `apex
 
 ###  Run workers
 Worker 0:
-    . ../../config.sh
-    CUDA_VISIBLE_DEVICES=0 OMPI_COMM_WORLD_SIZE=2 OMPI_COMM_WORLD_RANK=0 OMPI_COMM_WORLD_LOCAL_RANK=0 ./run.sh --init tcp://ip:port --backend nccl 
-
+```bash
+. ../../config.sh
+CUDA_VISIBLE_DEVICES=0 OMPI_COMM_WORLD_SIZE=2 OMPI_COMM_WORLD_RANK=0 OMPI_COMM_WORLD_LOCAL_RANK=0 ./run.sh 
+```
 Worker 1:
-    . ../../config.sh
-    CUDA_VISIBLE_DEVICES=0 GLOO_SOCKET_IFNAME=eth0 OMPI_COMM_WORLD_SIZE=2 OMPI_COMM_WORLD_RANK=1 OMPI_COMM_WORLD_LOCAL_RANK=0 ./run.sh --init tcp://ip:port --backend nccl
+```bash
+. ../../config.sh
+CUDA_VISIBLE_DEVICES=0 OMPI_COMM_WORLD_SIZE=2 OMPI_COMM_WORLD_RANK=1 OMPI_COMM_WORLD_LOCAL_RANK=0 ./run.sh 
+```

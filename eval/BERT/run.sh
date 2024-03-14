@@ -17,8 +17,11 @@
 
 echo "Container nvidia build = " $NVIDIA_BUILD_ID
 nccl_ib_disable=0
-BACKEND="gloo"
-INIT="tcp://127.0.0.1:4444"
+BACKEND="nccl"
+INIT="tcp://$MASTER_ADDR:$MASTER_PORT"
+
+export MOD_MY_MPI_RANK=$OMPI_COMM_WORLD_RANK
+export MOD_N_MPI_RANKS=$OMPI_COMM_WORLD_SIZE
 
 while (( "$#" )); do
     case "$1" in
