@@ -1,8 +1,16 @@
-# Conda Environment
+# DDL Emulator
+
+## Prerequisite
+
+We need `mamba` or `conda` installed before. You can install mamba [here](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html)
+
+## Conda Environment
 
 Suppose $ENV_PATH is the path to the conda environment, then we can use the following command to create a conda environment:
 
-```
+```bash
+mkdir ~/my_env
+export $ENV_PATH=~/my_env
 git submodule update --init --recursive
 bash ./scripts/create_env.sh $ENV_PATH
 ```
@@ -10,18 +18,19 @@ bash ./scripts/create_env.sh $ENV_PATH
 and keep $ENV_PATH in the config.sh
 
 ```bash
-# config.sh
+touch config.sh
+# in config.sh
 export ENV_PATH=your_env_path
-
 ```
 
-# NCCL
+## NCCL
 
-## Build
+### Build
 
 First, build the nccl and nccl make sure you have conda environment properly configurated.
 
-```
+```bash
+. ./config.sh
 bash ./scripts/build_nccl.sh
 ```
 
@@ -35,23 +44,24 @@ export NCCL_PROTO=Simple
 export NCCL_ALGO=Ring
 export NCCL_BUILD_PATH=your_nccl_build_path, a local file system like /tmp is recommended
 export NVCC_GENCODE="-gencode=arch=compute_[your_compute],code=sm_[your_sm]"
-export ONLY_FUNCS="AllReduce Sum (f16|f32) RING SIMPLE"
+# export ONLY_FUNCS="AllReduce Sum (f16|f32) RING SIMPLE"
+# you can specify ONLY_FUNCS to reduce compile time
 ```
 
-## Run
+### Run
 
-### examples
+#### examples
 
-Simple example (2 nodes, 1 gpu per node): 
+Simple example (2 nodes, 1 gpu per node):
 
-```
+```bash
 . ./config.sh
 mpirun -x NCCL_DEBUG -x NCCL_DEBUG_SUBSYS -x NCCL_SOCKET_IFNAME -x NCCL_DEBUG_FILE -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[node2]:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include ens3f1 sh -c "./build/ex1 [#size] [#loop] > /tmp/nccl-emulator/log_debug$(date "+%m-%d-%H:%M:%S")"
 ```
 
-Advanced example (2 nodes, 2 gpus per node): 
+Advanced example (2 nodes, 2 gpus per node):
 
-```
+```bash
 mpirun -x NCCL_DEBUG -x NCCL_DEBUG_SUBSYS -x NCCL_SOCKET_IFNAME -x NCCL_DEBUG_FILE -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[node2]:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include ens3f1 sh -c "./build/ex2 [#size] [#loop] 2 > /tmp/nccl-emulator/log_debug$(date "+%m-%d-%H:%M:%S")"
 ```
 
@@ -59,23 +69,21 @@ mpirun -x NCCL_DEBUG -x NCCL_DEBUG_SUBSYS -x NCCL_SOCKET_IFNAME -x NCCL_DEBUG_FI
 
  <!-- mpirun -x NCCL_DEBUG -x NCCL_DEBUG_SUBSYS -x NCCL_SOCKET_IFNAME -x NCCL_DEBUG_FILE -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H mcnode39:1,mcnode40:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include enp1s0f0  sh -c "./build/ex2 1000 1 2" -->
 
-
-# Pytorch
+## Pytorch
 
 After testing the nccl, we can use the nccl in pytorch.
 
-## Build
+### Build
 
 We have to build python from source, given that we use modified nccl.
 
-
-```
+```bash
 bash ./scripts/build_pytorch.sh
 ```
 
-## All Reduce Test
+### All Reduce Test
 
-```
+```bash
 export WORLD_SIZE=2
 export RANK=0
 export LOCAL_RANK=1
