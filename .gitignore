@@ -4,6 +4,7 @@
 *.ptx
 *.cubin
 *.fatbin
+.vscode
 config.sh
 config_release.sh
 openmpi-5.0.0
