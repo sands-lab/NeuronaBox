@@ -5,6 +5,7 @@
 *.cubin
 *.fatbin
 config.sh
+config_release.sh
 openmpi-5.0.0
 /log
 /build
