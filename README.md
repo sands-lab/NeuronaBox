@@ -14,7 +14,7 @@ Suppose $ENV_PATH is the path to the conda environment, then we can use the foll
 mkdir ~/my_env
 export $ENV_PATH=~/my_env
 git submodule update --init --recursive
-bash ./scripts/create_env.sh $ENV_PATH
+bash ./scripts/create_env.sh $ENV_PATH # takes about 30 minutes
 nvcc --version
 # expect:
 # Cuda compilation tools, release 11.8, V11.8.89
@@ -35,9 +35,11 @@ export ENV_PATH=your_env_path
 
 First, build the nccl and nccl make sure you have conda environment properly configurated.
 
+If you want to build emulator, make sure `nccl` repo is in branch `emu`, if you want to build $N_0$, make sure `nccl` repo is in branch `ori`.
+
 ```bash
 . ./config.sh
-bash ./scripts/build_nccl.sh
+bash ./scripts/build_nccl.sh # should take less than 5 minutes
 ```
 
 Add the following variables to config.sh that sets up the required environments:
@@ -95,10 +97,13 @@ After testing the nccl, we can use the nccl in pytorch.
 
 ### Build
 
-We have to build python from source, given that we use modified nccl.
+We have to build python from source, given that we want to use our nccl.
+
+
+If you want to build emulator, make sure `pytorch` repo is in branch `emu`, if you want to build $N_0$, make sure `pytorch` repo is in branch `ori`.
 
 ```bash
-bash ./scripts/build_pytorch.sh
+bash ./scripts/build_pytorch.sh # takes about 30 mintues
 conda activate $ENV_PATH
 python
 ```
