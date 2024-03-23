@@ -13,8 +13,8 @@ import time
 
 from models import Model0, Model1, Dataset0, Dataset1
 
-ITER = 8
-BATCH_SIZE = 128
+ITER = 16
+BATCH_SIZE = 64
 DATA_SIZE = ITER * BATCH_SIZE
     
 def ddp_setup():
@@ -70,10 +70,10 @@ class Trainer:
 
 def load_train_objs():
     global DATA_SIZE
-    train_set = Dataset0(DATA_SIZE) 
-    model = Model0((20,),(1,)) 
-    # train_set = Dataset1(DATA_SIZE) 
-    # model = Model1((20,),(10,))   
+    # train_set = Dataset0(DATA_SIZE) 
+    # model = Model0((20,),(1,)) 
+    train_set = Dataset1(DATA_SIZE) 
+    model = Model1((200,),(1,))   
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     return train_set, model, optimizer
 
