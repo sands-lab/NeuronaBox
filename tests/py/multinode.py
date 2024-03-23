@@ -13,9 +13,10 @@ import time
 
 from models import Model0, Model1, Dataset0, Dataset1
 
-ITER = 16
-BATCH_SIZE = 64
-DATA_SIZE = ITER * BATCH_SIZE
+EPOCH = 1
+BATCH_SIZE = 16
+DATA_PER_BATCH = 32
+DATA_SIZE = BATCH_SIZE * DATA_PER_BATCH
     
 def ddp_setup():
     print("Initializing process group for rank", os.environ["RANK"], "and world size", os.environ["WORLD_SIZE"])
@@ -111,4 +112,4 @@ if __name__ == "__main__":
         os.environ["MOD_KERNEL_BYPASS"] = "1"
     
     # total epochs, batch size
-    main(ITER, BATCH_SIZE)
+    main(EPOCH, BATCH_SIZE)
