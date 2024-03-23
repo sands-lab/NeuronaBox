@@ -834,7 +834,7 @@ def main():
                         action='store_true',
                         help='Disable tqdm progress bar')
     parser.add_argument("--skip_cache",
-                        default=True,
+                        default=False,
                         action='store_true',
                         help="Whether to cache train features")
     parser.add_argument("--cache_dir",
@@ -849,7 +849,6 @@ def main():
     parser.add_argument('--shared-path', default='.', type=str, help='An existing directory accessible to all workers, used for rendezvous')
 
     args = parser.parse_args()
-
     args.world_size = int(os.environ.get('OMPI_COMM_WORLD_SIZE', 0))
     args.rank = int(os.environ.get('OMPI_COMM_WORLD_RANK', 0))
     args.local_rank = int(os.environ.get('OMPI_COMM_WORLD_LOCAL_RANK', -1))
@@ -984,19 +983,19 @@ def main():
 
     if args.local_rank != -1:
         try:
-            from apex.parallel import DistributedDataParallel as DDP
-            #from torch.nn.parallel import DistributedDataParallel as DDP
+            #from apex.parallel import DistributedDataParallel as DDP
+            from torch.nn.parallel import DistributedDataParallel as DDP
         except ImportError:
             raise ImportError(
                 "Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
-        if args.bucket_size_mb:
-            model = DDP(model, message_size=args.bucket_size_mb*1024*1024*4)
-        else:
-            model = DDP(model)
+        # if args.bucket_size_mb:
+        #     model = DDP(model, message_size=args.bucket_size_mb*1024*1024*4)
+        # else:
+        model = DDP(model, find_unused_parameters=True)
     elif n_gpu > 1:
         model = torch.nn.DataParallel(model)
 
-    global_step = 0
+    global_step = 0 
     if args.do_train:
 
         if args.cache_dir is None:
@@ -1012,6 +1011,7 @@ def main():
         try:
             with open(cached_train_features_file, "rb") as reader:
                 train_features = pickle.load(reader)
+            print("Load Feature From Cache")
         except:
             train_features = convert_examples_to_features(
                 examples=train_examples,
@@ -1020,7 +1020,6 @@ def main():
                 doc_stride=args.doc_stride,
                 max_query_length=args.max_query_length,
                 is_training=True)
-
             if not args.skip_cache and is_main_process():
                 dllogger.log(step="PARAMETER", data={"Cached_train features_file": cached_train_features_file})
                 with open(cached_train_features_file, "wb") as writer:

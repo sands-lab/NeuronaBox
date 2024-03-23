@@ -117,6 +117,6 @@ CMD+=" --init=$INIT "
 CURRENT_DATE=$(date "+%m-%d%H:%M:%S")
 CMD+=" --json-summary=results/$CURRENT_DATE.json"
 CMD+=" $use_fp16"
-
+CMD+=" --cache_dir=/tmp"
 echo "$CMD"
 time $CMD

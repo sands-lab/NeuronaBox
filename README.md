@@ -58,6 +58,10 @@ export NVCC_GENCODE="-gencode=arch=compute_[your_compute],code=sm_[your_sm]"
 # you can specify ONLY_FUNCS to reduce compile time
 export ONLY_FUNCS="AllReduce Sum (f16|f32) RING SIMPLE"
 export DEBUG=1
+# for current experiments, we only use 2 nodes, 1 gpu per node
+export CUDA_VISIBLE_DEVICES=0
+export OMPI_COMM_WORLD_SIZE=2
+export OMPI_COMM_WORLD_LOCAL_RANK=0
 ```
 
 ```bash
@@ -70,6 +74,10 @@ export NCCL_BUILD_PATH=your_nccl_build_path, a local file system like /tmp is re
 export NVCC_GENCODE="-gencode=arch=compute_[your_compute],code=sm_[your_sm]"
 unset ONLY_FUNCS
 export DEBUG=0
+# for current experiments, we only use 2 nodes, 1 gpu per node
+export CUDA_VISIBLE_DEVICES=0
+export OMPI_COMM_WORLD_SIZE=2
+export OMPI_COMM_WORLD_LOCAL_RANK=0
 ```
 
 ### Run
