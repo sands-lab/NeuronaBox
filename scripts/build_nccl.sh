@@ -51,10 +51,13 @@ cp $NCCL_BUILD_PATH/nccl/build/obj/device/gensrc/host_table.cc ./build
 # cd ..
 
 # build examples
+nvcc -lmpi -lnccl -lcudart ./tests/nccl/ex0.cu -o ./build/ex0
+nvcc -lmpi -lnccl -lcudart ./tests/nccl/ex0_ori.cu -o ./build/ex0_ori
+nvcc -lmpi -lnccl -lcudart ./tests/nccl/ex1.cu -o ./build/ex1
+nvcc -lmpi -lnccl -lcudart ./tests/nccl/ex1_ori.cu -o ./build/ex1_ori
 nvcc -lmpi -lnccl -lcudart ./tests/nccl/ex2.cu -o ./build/ex2
 nvcc -lmpi -lnccl -lcudart ./tests/nccl/ex3.cu -o ./build/ex3 
 nvcc -lmpi -lnccl -lcudart ./tests/nccl/ex4.cu -o ./build/ex4
-nvcc -lmpi -lnccl -lcudart ./tests/nccl/ex1.cu -o ./build/ex1
 nvcc -lmpi -lnccl -lcudart ./tests/nccl/ex5.cu -o ./build/ex5
  
 mkdir -p /tmp/nccl-emulator

@@ -114,7 +114,7 @@ CMD+=" --config_file=$CONFIG_FILE "
 CMD+=" --max_steps=$max_steps "
 CMD+=" --dist-backend=$BACKEND "
 CMD+=" --init=$INIT "
-CURRENT_DATE=$(date "+%m-%d%H:%M:%S")
+CURRENT_DATE=$(date "+%m-%d-%H:%M:%S")
 CMD+=" --json-summary=results/$CURRENT_DATE.json"
 CMD+=" $use_fp16"
 CMD+=" --cache_dir=/tmp"

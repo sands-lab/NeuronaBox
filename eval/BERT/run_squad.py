@@ -983,15 +983,15 @@ def main():
 
     if args.local_rank != -1:
         try:
-            #from apex.parallel import DistributedDataParallel as DDP
-            from torch.nn.parallel import DistributedDataParallel as DDP
+            from apex.parallel import DistributedDataParallel as DDP
+            # from torch.nn.parallel import DistributedDataParallel as DDP
         except ImportError:
             raise ImportError(
                 "Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
         # if args.bucket_size_mb:
-        #     model = DDP(model, message_size=args.bucket_size_mb*1024*1024*4)
+        model = DDP(model, message_size=args.bucket_size_mb*1024*1024*4)
         # else:
-        model = DDP(model, find_unused_parameters=True)
+        # model = DDP(model, find_unused_parameters=True)
     elif n_gpu > 1:
         model = torch.nn.DataParallel(model)
 
@@ -1003,7 +1003,7 @@ def main():
                 list(filter(None, args.bert_model.split('/'))).pop(), str(args.max_seq_length), str(args.doc_stride),
                 str(args.max_query_length))
         else:
-            cached_train_features_file = args.cache_dir.strip('/') + '/' + args.train_file.split('/')[-1] + '_{0}_{1}_{2}_{3}'.format(
+            cached_train_features_file = args.cache_dir.rstrip('/') + '/' + args.train_file.split('/')[-1] + '_{0}_{1}_{2}_{3}'.format(
                 list(filter(None, args.bert_model.split('/'))).pop(), str(args.max_seq_length), str(args.doc_stride),
                 str(args.max_query_length))
 
