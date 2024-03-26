@@ -64,19 +64,16 @@ int run(int myRank, int nRanks, int localRank, int size, int loop,
     sendbuff[i] = myRank + 1;
   }
   // communicating using NCCL
-  printf("send[0] %f at rank %d\n", sendbuff[0], myRank);
-
+  // printf("send[0] %f at rank %d\n", sendbuff[0], myRank);
   // warmup
   for (int i = 0; i < 10; ++i) {
     auto &s = s1;
     NCCLCHECK(ncclAllReduce((const void *)sendbuff, (void *)recvbuff, size,
                             ncclFloat, ncclSum, comm, s));
     CUDACHECK(cudaStreamSynchronize(s));
-    NCCLCHECK(ncclModStreamSync(s));
   }
-
   Timer timer0, timer1, timer2;
-  uint64_t sum_sync = 0, sum_all = 0;
+  uint64_t sum = 0;
   // timer0.begin();
   for (int i = 0; i < loop; ++i) {
     timer1.begin();
@@ -86,17 +83,13 @@ int run(int myRank, int nRanks, int localRank, int size, int loop,
     NCCLCHECK(ncclAllReduce((const void *)sendbuff, (void *)recvbuff, size,
                             ncclFloat, ncclSum, comm, s));
     CUDACHECK(cudaStreamSynchronize(s));
-    timer2.begin();
-    NCCLCHECK(ncclModStreamSync(s));
-    sum_sync += timer2.end(1);
-    sum_all += timer1.end(1);
-
     // printf("rk%d loop %dth finished\n", myRank, i);
+    sum += timer1.end(1);
   }
   // timer0.end_print(1);
-  printf("[mod] sum_sync %lu sum_all %lu\n", sum_sync, sum_all);
 
-  printf("recv[0] %f at rank %d\n", recvbuff[0], myRank);
+  printf("[ori]: sum = %lu\n", sum);
+  // printf("recv[0] %f at rank %d\n", recvbuff[0], myRank);
 
   CUDACHECK(cudaFree(sendbuff));
   CUDACHECK(cudaFree(recvbuff));
