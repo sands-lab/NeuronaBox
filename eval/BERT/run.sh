@@ -55,7 +55,7 @@ vocab_file="./dataset/vocab.txt"
 OUT_DIR="."
 mode="train"
 CONFIG_FILE="./dataset/checkpoint/bert_config.json"
-max_steps="200"
+max_steps="10"
 batch_size="4"
 
 

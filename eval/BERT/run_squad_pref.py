@@ -1048,64 +1048,69 @@ def main():
         gradClipper = GradientClipper(max_grad_norm=1.0)
         final_loss = None
         train_start = time.time()
-        for epoch in range(int(args.num_train_epochs)):
-            train_iter = tqdm(train_dataloader, desc="Iteration", disable=args.disable_progress_bar) if is_main_process() else train_dataloader
-            for step, batch in enumerate(train_iter):
+        with profile(activities=[ProfilerActivity.CUDA, ProfilerActivity.CPU], record_shapes=True, use_cuda=True) as prof:
+            for epoch in range(int(args.num_train_epochs)):
+                train_iter = tqdm(train_dataloader, desc="Iteration", disable=args.disable_progress_bar) if is_main_process() else train_dataloader
+                for step, batch in enumerate(train_iter):
 
-                # Terminate early for benchmarking
-                
-                if args.max_steps > 0 and global_step >= args.max_steps:
-                    break
+                    # Terminate early for benchmarking
+                    
+                    if args.max_steps > 0 and global_step >= args.max_steps:
+                        break
 
-                if args.synthetic_profile:
-                    print(f'SYNTHETIC ITERATION PROFILE {time.time_ns()//1000}')
+                    if args.synthetic_profile:
+                        print(f'SYNTHETIC ITERATION PROFILE {time.time_ns()//1000}')
 
-                if n_gpu == 1:
-                    batch = tuple(t.to(device) for t in batch)  # multi-gpu does scattering it-self
-                input_ids, input_mask, segment_ids, start_positions, end_positions = batch
-                step_time = time.time_ns()
-                start_logits, end_logits = model(input_ids, segment_ids, input_mask)
-                # If we are on multi-GPU, split add a dimension
-                if len(start_positions.size()) > 1:
-                    start_positions = start_positions.squeeze(-1)
-                if len(end_positions.size()) > 1:
-                    end_positions = end_positions.squeeze(-1)
-                # sometimes the start/end positions are outside our model inputs, we ignore these terms
-                ignored_index = start_logits.size(1)
-                start_positions.clamp_(0, ignored_index)
-                end_positions.clamp_(0, ignored_index)
+                    if n_gpu == 1:
+                        batch = tuple(t.to(device) for t in batch)  # multi-gpu does scattering it-self
+                    input_ids, input_mask, segment_ids, start_positions, end_positions = batch
+                    step_time = time.time_ns()
+                    with record_function("model_forward"):
+                        start_logits, end_logits = model(input_ids, segment_ids, input_mask)
+                    # If we are on multi-GPU, split add a dimension
+                    if len(start_positions.size()) > 1:
+                        start_positions = start_positions.squeeze(-1)
+                    if len(end_positions.size()) > 1:
+                        end_positions = end_positions.squeeze(-1)
+                    # sometimes the start/end positions are outside our model inputs, we ignore these terms
+                    ignored_index = start_logits.size(1)
+                    start_positions.clamp_(0, ignored_index)
+                    end_positions.clamp_(0, ignored_index)
 
-                loss_fct = torch.nn.CrossEntropyLoss(ignore_index=ignored_index)
-                start_loss = loss_fct(start_logits, start_positions)
-                end_loss = loss_fct(end_logits, end_positions)
-                loss = (start_loss + end_loss) / 2
-                if n_gpu > 1:
-                    loss = loss.mean()  # mean() to average on multi-gpu.
-                if args.gradient_accumulation_steps > 1:
-                    loss = loss / args.gradient_accumulation_steps
-                if args.fp16:
-                    with amp.scale_loss(loss, optimizer) as scaled_loss:
-                        scaled_loss.backward()
-                else:
-                    loss.backward()
-                
-                # gradient clipping  
-                gradClipper.step(amp.master_params(optimizer))         
-                global_step += 1
-                if os.environ["MOD_KERNEL_BYPASS"] != "1":
-                    if (step + 1) % args.gradient_accumulation_steps == 0:
-                        if args.fp16 :
-                            # modify learning rate with special warm up for BERT which FusedAdam doesn't do
-                            scheduler.step()
-                        optimizer.step()
-                        optimizer.zero_grad()
+                    with record_function("model_backward"):
+                        loss_fct = torch.nn.CrossEntropyLoss(ignore_index=ignored_index)
+                        start_loss = loss_fct(start_logits, start_positions)
+                        end_loss = loss_fct(end_logits, end_positions)
+                        loss = (start_loss + end_loss) / 2
+                        if n_gpu > 1:
+                            loss = loss.mean()  # mean() to average on multi-gpu.
+                        if args.gradient_accumulation_steps > 1:
+                            loss = loss / args.gradient_accumulation_steps
+                        if args.fp16:
+                            with amp.scale_loss(loss, optimizer) as scaled_loss:
+                                scaled_loss.backward()
+                        else:
+                            loss.backward()
+                    
+                        # gradient clipping  
+                        gradClipper.step(amp.master_params(optimizer))         
+                    with record_function("optimizer_step"):
+                        global_step += 1
+                        if os.environ["MOD_KERNEL_BYPASS"] != "1":
+                            if (step + 1) % args.gradient_accumulation_steps == 0:
+                                if args.fp16 :
+                                    # modify learning rate with special warm up for BERT which FusedAdam doesn't do
+                                    scheduler.step()
+                                optimizer.step()
+                                optimizer.zero_grad()
 
-                final_loss = loss.item()
-                if step % args.log_freq == 0:
-                    dllogger.log(step=(epoch, global_step,), data={"step_loss": final_loss,
-                                                                "learning_rate": optimizer.param_groups[0]['lr'],
-                                                                "step_time_ns": time.time_ns()-step_time})
-    
+                        final_loss = loss.item()
+                    if step % args.log_freq == 0:
+                        dllogger.log(step=(epoch, global_step,), data={"step_loss": final_loss,
+                                                                    "learning_rate": optimizer.param_groups[0]['lr'],
+                                                                    "step_time_ns": time.time_ns()-step_time})
+        
+        prof.export_chrome_trace("/tmp/trace.json")
         time_to_train = time.time() - train_start
 
     if args.do_train and is_main_process() and not args.skip_checkpoint:
