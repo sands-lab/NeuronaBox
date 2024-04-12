@@ -724,6 +724,19 @@ class GradientClipper:
             multi_tensor_applier(self.multi_tensor_scale, self._overflow_buf, [l, l], clip_coef)
 
 
+def register_hooks_for_all_modules(model):
+    # Hook function to print information
+    def forward_hook(module, input, output):
+        if hasattr(output, 'grad_fn') and output.requires_grad:
+            grad_fn = str(output.grad_fn.__class__.__name__)
+        else:
+            grad_fn = "None"
+        print(f"{module.__class__.__name__}: {grad_fn}")
+
+    # Register the hook on all modules
+    for module in model.modules():
+        module.register_forward_hook(forward_hook)
+
 def main():
     parser = argparse.ArgumentParser()
 
@@ -995,6 +1008,7 @@ def main():
         model = DDP(model, find_unused_parameters=True)
     elif n_gpu > 1:
         model = torch.nn.DataParallel(model)
+    # register_hooks_for_all_modules(model)
 
     global_step = 0 
     if args.do_train:
@@ -1079,15 +1093,15 @@ def main():
                 start_loss = loss_fct(start_logits, start_positions)
                 end_loss = loss_fct(end_logits, end_positions)
                 loss = (start_loss + end_loss) / 2
-                if n_gpu > 1:
-                    loss = loss.mean()  # mean() to average on multi-gpu.
-                if args.gradient_accumulation_steps > 1:
-                    loss = loss / args.gradient_accumulation_steps
-                if args.fp16:
-                    with amp.scale_loss(loss, optimizer) as scaled_loss:
-                        scaled_loss.backward()
-                else:
-                    loss.backward()
+                # if n_gpu > 1:
+                #     loss = loss.mean()  # mean() to average on multi-gpu.
+                # if args.gradient_accumulation_steps > 1:
+                #     loss = loss / args.gradient_accumulation_steps
+                # if args.fp16:
+                #     with amp.scale_loss(loss, optimizer) as scaled_loss:
+                #         scaled_loss.backward()
+                # else:
+                loss.backward()
                 
                 # gradient clipping  
                 gradClipper.step(amp.master_params(optimizer))         
