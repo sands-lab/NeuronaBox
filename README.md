@@ -89,6 +89,8 @@ Simple example (2 nodes, 1 gpu per node):
 mpirun -x NCCL_DEBUG -x NCCL_DEBUG_SUBSYS -x NCCL_DEBUG_FILE -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[node2]:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include ens3f1 sh -c "./build/ex1 [#size] [#loop] > /tmp/nccl-emulator/log_debug$(date "+%m-%d-%H:%M:%S")"
 ```
 
+mpirun -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H mcnode39:1,mcnode40:1 --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include enp1s0f0  sh -c "./tmp/ex1 100000 10"
+
 <!-- Advanced example (2 nodes, 2 gpus per node):
 
 ```bash
@@ -137,3 +139,27 @@ export MOD_NNODES=2
 export MOD_MY_NODE=0
 python ./py-examples/all_reduce.py
 ``` -->
+
+## Eval
+
+### BERT
+
+We need two terminal to run BERT experiments, one with emulator enabled, one with oringal(unmodifed) code, we refer the first as `emu` and the second as `ori`.
+
+```bash
+# emu
+conda activate emu
+. ./config_release.sh # use release build for nccl and pytorch
+cd eval/BERT
+CUDA_VISIBLE_DEVICES=0 OMPI_COMM_WORLD_SIZE=2 OMPI_COMM_WORLD_LOCAL_RANK=0 OMPI_COMM_WORLD_RANK=0 MOD_KERNEL_BYPASS=1 ./run.sh
+```
+
+```bash
+# ori
+conda activate ori
+. ./config_release.sh # use release build for nccl and pytorch
+cd eval/BERT
+CUDA_VISIBLE_DEVICES=0 OMPI_COMM_WORLD_SIZE=2 OMPI_COMM_WORLD_LOCAL_RANK=0 OMPI_COMM_WORLD_RANK=1 MOD_KERNEL_BYPASS=0 ./run.sh
+```
+
+The result is saved in `eval/BERT/results`.
