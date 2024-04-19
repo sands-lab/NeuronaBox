@@ -90,5 +90,9 @@ with torch.cuda.device(pars.gpu):
             use_logit=pars.use_logit, random_seed=pars.random_seed)
     if pars.use_cuda:
         model = model.cuda()
-        model.fit(result_index[rank*local_num:(rank+1)*local_num], result_value[rank*local_num:(rank+1)*local_num], result_label[rank*local_num:(rank+1)*local_num], test_index, test_value, test_label, \
+        results = model.fit(result_index[rank*local_num:(rank+1)*local_num], result_value[rank*local_num:(rank+1)*local_num], result_label[rank*local_num:(rank+1)*local_num], test_index, test_value, test_label, \
                 prune=pars.prune, prune_fm=pars.prune_fm, prune_r=pars.prune_r, prune_deep=pars.prune_deep, save_path=save_model_name, emb_r=pars.emb_r, emb_corr=pars.emb_corr,rank=rank, device=pars.gpu, distributed=distribute)
+        
+        with open(f"result{rank}.txt", "w"):
+            for idx, result in results.item():
+                f.write(f"{idx}: {result}\n")

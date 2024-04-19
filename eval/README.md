@@ -1,0 +1,3 @@
+```bash
+conda install sysstat
+```

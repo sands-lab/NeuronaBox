@@ -55,7 +55,7 @@ vocab_file="./dataset/vocab.txt"
 OUT_DIR="."
 mode="train"
 CONFIG_FILE="./dataset/checkpoint/bert_config.json"
-max_steps="10"
+max_steps="300"
 batch_size="4"
 
 
@@ -115,7 +115,7 @@ CMD+=" --max_steps=$max_steps "
 CMD+=" --dist-backend=$BACKEND "
 CMD+=" --init=$INIT "
 CURRENT_DATE=$(date "+%m-%d-%H:%M:%S")
-CMD+=" --json-summary=results/$CURRENT_DATE.json"
+CMD+=" --json-summary=results/BERT_$CURRENT_DATE.json"
 CMD+=" $use_fp16"
 CMD+=" --cache_dir=/tmp"
 echo "$CMD"
