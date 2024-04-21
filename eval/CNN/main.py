@@ -362,8 +362,8 @@ def main():
         val_loader.reset()
 
     with open(f"results{args.rank}.txt", "w") as f:
-        for idx, result in results.items():
-            f.write(f"{idx} {result}")
+        for i in range(len(results)):
+            f.write(f"{i} {results[i]}\n")
 
 def train(train_loader, model, criterion, optimizer, epoch):
     batch_time = AverageMeter()

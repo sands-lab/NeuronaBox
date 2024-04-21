@@ -24,7 +24,7 @@ pip install -v --disable-pip-version-check --no-cache-dir --global-option="--cpp
 Worker 0:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 OMPI_COMM_WORLD_SIZE=2 OMPI_COMM_WORLD_RANK=0 OMPI_COMM_WORLD_LOCAL_RANK=0 python main.py -a resnet152 --lr 0.1 --world-size 2 --rank 0 --dist-url tcp://${MASTER_ADDR}:${MASTER_PORT} --dist-backend nccl  ./dataset/
+CUDA_VISIBLE_DEVICES=0 OMPI_COMM_WORLD_SIZE=2 OMPI_COMM_WORLD_RANK=0 OMPI_COMM_WORLD_LOCAL_RANK=0 MOD_KERNEL_BYPASS=1 python main.py -a resnet152 --lr 0.1 --world-size 2 --rank 0 --dist-url tcp://${MASTER_ADDR}:${MASTER_PORT} --dist-backend nccl  ./dataset/
 ```
 
 Worker 1:

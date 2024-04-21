@@ -471,13 +471,13 @@ class DeepFMs(torch.nn.Module):
         print('Number of DNN parameters: %d' % (num_dnn))
         print("Number of total parameters: %d"% (num_total))
         n_iter = 0
+        print("Training Start")
         results = []
         for epoch in range(self.n_epochs):
             total_loss = 0.0
             batch_iter = x_size // self.batch_size
             epoch_begin_time = time()
             for i in range(batch_iter+1):
-                results = []
                 if epoch >= self.warm:
                     n_iter += 1
                 offset = i*self.batch_size
