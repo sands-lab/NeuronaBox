@@ -375,7 +375,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
     model.train()
     end = time.time()
     imgdata = next(train_loader)
-    steps = 200
+    steps = 300
     for i in range(steps):
         input = imgdata[0]["data"]
         target = imgdata[0]["label"].squeeze(-1).long()

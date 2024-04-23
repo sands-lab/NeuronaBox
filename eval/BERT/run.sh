@@ -115,7 +115,7 @@ CMD+=" --max_steps=$max_steps "
 CMD+=" --dist-backend=$BACKEND "
 CMD+=" --init=$INIT "
 CURRENT_DATE=$(date "+%m-%d-%H:%M:%S")
-CMD+=" --json-summary=results/BERT_$CURRENT_DATE.json"
+CMD+=" --json-summary=results/BERT_${MOD_DELAY}_${CURRENT_DATE}$.json"
 CMD+=" $use_fp16"
 CMD+=" --cache_dir=/tmp"
 echo "$CMD"
