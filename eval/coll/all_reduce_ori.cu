@@ -66,7 +66,7 @@ int run(int myRank, int nRanks, int localRank, int size, int loop,
     NCCLCHECK(ncclAllReduce((const void *)sendbuff, (void *)recvbuff, size,
                             ncclFloat, ncclSum, comm, s));
     CUDACHECK(cudaStreamSynchronize(s));
-    NCCLCHECK(ncclModStreamSync(s));
+    //NCCLCHECK(ncclModStreamSync(s));
   }
 
   Timer timer0;
@@ -78,13 +78,15 @@ int run(int myRank, int nRanks, int localRank, int size, int loop,
     NCCLCHECK(ncclAllReduce((const void *)sendbuff, (void *)recvbuff, size,
                             ncclFloat, ncclSum, comm, s));
 
-    NCCLCHECK(ncclModStreamSync(s));
+    //NCCLCHECK(ncclModStreamSync(s));
 
   }
   CUDACHECK(cudaStreamSynchronize(s1));
   sum_e2e = timer0.end(1);
 
   printf("[rk%d] average time for sum_e2e: %.3f\n", myRank, 1.0*sum_e2e/loop);
+
+
 
   CUDACHECK(cudaFree(sendbuff));
   CUDACHECK(cudaFree(recvbuff));

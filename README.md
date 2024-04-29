@@ -89,7 +89,6 @@ Simple example (2 nodes, 1 gpu per node):
 mpirun -x NCCL_DEBUG -x NCCL_DEBUG_SUBSYS -x NCCL_DEBUG_FILE -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[node2]:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include ens3f1 sh -c "./build/ex1 [#size] [#loop] > /tmp/nccl-emulator/log_debug$(date "+%m-%d-%H:%M:%S")"
 ```
 
-mpirun -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H mcnode39:1,mcnode40:1 --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include enp1s0f0  sh -c "./tmp/ex1 100000 10"
 
 <!-- Advanced example (2 nodes, 2 gpus per node):
 
@@ -127,7 +126,60 @@ torch.cuda.nccl.version() # expect 2.19.4
 
 ### All Reduce Test
 
-todo!
+We need two terminal to run this test, we call the environment with emulator enabled as `emu` , the other one with oringal(unmodifed) code as `ori`.
+
+The following is a simple example. 
+
+```bash
+# emu
+conda activate emu
+. ./config_release.sh # use release build for nccl and pytorch
+nvcc -lmpi -lnccl -lcudart -O3 ./eval/coll/all_reduce.cu -o ./build/all_reduce
+cp ./build/all_reduce /tmp/ex
+
+```
+
+```bash
+# ori
+conda activate ori
+. ./config_release.sh # use release build for nccl and pytorch
+nvcc -lmpi -lnccl -lcudart -O3 ./eval/coll/all_reduce_ori.cu -o ./build/all_reduce_ori
+cp ./build/all_reduce_ori /tmp/ex
+
+mpirun -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[node2]:1 --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include enp1s0f0 sh -c "/tmp/ex [#size] [#loop]"
+```
+
+The results will be output to the terminal.
+
+### All Gather Test
+
+We need two terminal to run this test, we call the environment with emulator enabled as `emu` , the other one with oringal(unmodifed) code as `ori`.
+
+The following is a simple example. 
+
+```bash
+# emu
+conda activate emu
+. ./config_release.sh # use release build for nccl and pytorch
+nvcc -lmpi -lnccl -lcudart -O3 ./eval/coll/all_gather.cu -o ./build/all_gather
+cp ./build/all_gather /tmp/ex
+
+```
+
+```bash
+# ori
+conda activate ori
+. ./config_release.sh # use release build for nccl and pytorch
+nvcc -lmpi -lnccl -lcudart -O3 ./eval/coll/all_gather_ori.cu -o ./build/all_gather_ori
+cp ./build/all_gather_ori /tmp/ex
+
+mpirun -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[node2]:1 --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include enp1s0f0 sh -c "/tmp/ex [#size] [#loop]"
+```
+
+The results will be output to the terminal.
+
+
+
 <!-- ```bash
 export WORLD_SIZE=2
 export RANK=0
