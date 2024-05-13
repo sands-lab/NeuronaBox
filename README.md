@@ -8,7 +8,9 @@ We also need to setup remote nodes for `mpirun` or `torchrun`, make sure that yo
 
 ## Conda Environment
 
-Suppose $ENV_PATH is the path to the conda environment, then we can use the following command to create a conda environment:
+Suppose $ENV_PATH is the path to the conda environment, then we can use the following command to create a conda environment. We need two environments, we call it `ori` and `emu`. `ori` is the unmodified original code, `emu` is the code with emulator:
+
+We need to install dependencies for both.
 
 ```bash
 mkdir ~/my_env
@@ -35,9 +37,12 @@ export ENV_PATH=your_env_path
 
 First, build the nccl and nccl make sure you have conda environment properly configurated.
 
-If you want to build emulator, make sure `nccl` repo is in branch `emu`, if you want to build $N_0$, make sure `nccl` repo is in branch `ori`.
+We need to build nccl from source, for both `emu` and `ori`.
 
 ```bash
+cd nccl
+git switch [emu/ori] # switch to the branch you want to build 
+cd ..
 . ./config.sh
 bash ./scripts/build_nccl.sh # should take less than 5 minutes
 ```
@@ -80,26 +85,6 @@ export OMPI_COMM_WORLD_SIZE=2
 export OMPI_COMM_WORLD_LOCAL_RANK=0
 ```
 
-### Run
-
-Simple example (2 nodes, 1 gpu per node):
-
-```bash
-. ./config.sh
-mpirun -x NCCL_DEBUG -x NCCL_DEBUG_SUBSYS -x NCCL_DEBUG_FILE -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[node2]:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include ens3f1 sh -c "./build/ex1 [#size] [#loop] > /tmp/nccl-emulator/log_debug$(date "+%m-%d-%H:%M:%S")"
-```
-
-
-<!-- Advanced example (2 nodes, 2 gpus per node):
-
-```bash
-mpirun -x NCCL_DEBUG -x NCCL_DEBUG_SUBSYS -x NCCL_SOCKET_IFNAME -x NCCL_DEBUG_FILE -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[node2]:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include ens3f1 sh -c "./build/ex2 [#size] [#loop] 2 > /tmp/nccl-emulator/log_debug$(date "+%m-%d-%H:%M:%S")"
-``` -->
-
-<!-- mpirun -x NCCL_DEBUG -x NCCL_DEBUG_SUBSYS -x NCCL_SOCKET_IFNAME -x NCCL_DEBUG_FILE -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H mcnode02:1,mcnode06:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include ens3f1 sh -c "/mnt/scratch/liub0a/nccl-emulator/ex1 100000 10" -->
-
- <!-- mpirun -x NCCL_DEBUG -x NCCL_DEBUG_SUBSYS -x NCCL_SOCKET_IFNAME -x NCCL_DEBUG_FILE -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H mcnode39:1,mcnode40:1  --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include enp1s0f0  sh -c "./build/ex2 1000 1 2" -->
-
 ## Pytorch
 
 After testing the nccl, we can use the nccl in pytorch.
@@ -108,10 +93,10 @@ After testing the nccl, we can use the nccl in pytorch.
 
 We have to build python from source, given that we want to use our nccl.
 
-
-If you want to build emulator, make sure `pytorch` repo is in branch `emu`, if you want to build $N_0$, make sure `pytorch` repo is in branch `ori`.
-
 ```bash
+cd pytorch
+git switch [emu/ori] # switch to the branch you want to build
+cd ..
 bash ./scripts/build_pytorch.sh # takes about 30 mintues
 conda activate $ENV_PATH
 python
@@ -124,77 +109,11 @@ torch.cuda.is_available()
 torch.cuda.nccl.version() # expect 2.19.4
 ```
 
-### All Reduce Test
-
-We need two terminal to run this test, we call the environment with emulator enabled as `emu` , the other one with oringal(unmodifed) code as `ori`.
-
-The following is a simple example. 
-
-```bash
-# emu
-conda activate emu
-. ./config_release.sh # use release build for nccl and pytorch
-nvcc -lmpi -lnccl -lcudart -O3 ./eval/coll/all_reduce.cu -o ./build/all_reduce
-cp ./build/all_reduce /tmp/ex
-
-```
-
-```bash
-# ori
-conda activate ori
-. ./config_release.sh # use release build for nccl and pytorch
-nvcc -lmpi -lnccl -lcudart -O3 ./eval/coll/all_reduce_ori.cu -o ./build/all_reduce_ori
-cp ./build/all_reduce_ori /tmp/ex
-
-mpirun -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[node2]:1 --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include enp1s0f0 sh -c "/tmp/ex [#size] [#loop]"
-```
-
-The results will be output to the terminal.
-
-### All Gather Test
-
-We need two terminal to run this test, we call the environment with emulator enabled as `emu` , the other one with oringal(unmodifed) code as `ori`.
-
-The following is a simple example. 
-
-```bash
-# emu
-conda activate emu
-. ./config_release.sh # use release build for nccl and pytorch
-nvcc -lmpi -lnccl -lcudart -O3 ./eval/coll/all_gather.cu -o ./build/all_gather
-cp ./build/all_gather /tmp/ex
-
-```
-
-```bash
-# ori
-conda activate ori
-. ./config_release.sh # use release build for nccl and pytorch
-nvcc -lmpi -lnccl -lcudart -O3 ./eval/coll/all_gather_ori.cu -o ./build/all_gather_ori
-cp ./build/all_gather_ori /tmp/ex
-
-mpirun -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[node2]:1 --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include enp1s0f0 sh -c "/tmp/ex [#size] [#loop]"
-```
-
-The results will be output to the terminal.
-
-
-
-<!-- ```bash
-export WORLD_SIZE=2
-export RANK=0
-export LOCAL_RANK=1
-export MASTER_ADDR=your master ip
-export MASTER_PORT=any unused port
-export MOD_KERNEL_BYPASS=1
-export MOD_NNODES=2
-export MOD_MY_NODE=0
-python ./py-examples/all_reduce.py
-``` -->
-
 ## Eval
 
-### BERT
+Please check the README.md in the eval folder for more details.
+
+<!-- ### BERT
 
 We need two terminal to run BERT experiments, one with emulator enabled, one with oringal(unmodifed) code, we refer the first as `emu` and the second as `ori`.
 
@@ -214,4 +133,4 @@ cd eval/BERT
 CUDA_VISIBLE_DEVICES=0 OMPI_COMM_WORLD_SIZE=2 OMPI_COMM_WORLD_LOCAL_RANK=0 OMPI_COMM_WORLD_RANK=1 MOD_KERNEL_BYPASS=0 ./run.sh
 ```
 
-The result is saved in `eval/BERT/results`.
+The result is saved in `eval/BERT/results`. -->
