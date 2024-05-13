@@ -1,6 +1,3 @@
-[submodule "nccl-tests"]
-	path = nccl-tests
-	url = git@github.com:livingshade/nccl-tests.git
 [submodule "nccl"]
 	path = nccl
 	url = git@github.com:livingshade/nccl.git
