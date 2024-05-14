@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
 
   assert(argc == 3);
 
-  uint64_t size = atoi(argv[1]);
+  uint64_t size = atoll(argv[1]);
   int loop = atoi(argv[2]);
   printf("size = %lu, loop = %d\n", size, loop);
 
