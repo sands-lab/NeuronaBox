@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string>
 #include <unistd.h>
+#include<fstream>
 #define MPICHECK(cmd)                                                          \
   do {                                                                         \
     int e = cmd;                                                               \
@@ -53,18 +54,19 @@ int run(int myRank, int nRanks, int localRank, uint64_t size, int loop,
   float *sendbuff, *recvbuff;
   cudaStream_t s1;
   CUDACHECK(cudaSetDevice(localRank));
-  CUDACHECK(cudaMalloc(&sendbuff, size * sizeof(float)));
+  CUDACHECK(cudaMalloc(&sendbuff, 2*size * sizeof(float)));
   CUDACHECK(cudaMalloc(&recvbuff, 2*size * sizeof(float)));
-  CUDACHECK(cudaMemset(sendbuff, 1, size * sizeof(float)));
+  CUDACHECK(cudaMemset(sendbuff, 1, 2*size * sizeof(float)));
   CUDACHECK(cudaMemset(recvbuff, 0, 2*size * sizeof(float)));
   CUDACHECK(cudaStreamCreate(&s1));
 
   // warmup
   for (int i = 0; i < 10; ++i) {
     auto &s = s1;
-    NCCLCHECK(ncclAllGather((const void *)sendbuff, (void *)recvbuff, size,ncclFloat,comm, s));
+    NCCLCHECK(ncclReduceScatter((const void *)sendbuff, (void *)recvbuff, size,
+                            ncclFloat, ncclSum, comm, s));
     CUDACHECK(cudaStreamSynchronize(s));
-    //NCCLCHECK(ncclModStreamSync(s));
+    NCCLCHECK(ncclModStreamSync(s));
   }
   Timer timer0;
   uint64_t  sum_e2e = 0;
@@ -72,9 +74,10 @@ int run(int myRank, int nRanks, int localRank, uint64_t size, int loop,
   for (int i = 0; i < loop; ++i) {
 
     auto &s = s1;
-    NCCLCHECK(ncclAllGather((const void *)sendbuff, (void *)recvbuff, size,ncclFloat,comm, s));
+    NCCLCHECK(ncclReduceScatter((const void *)sendbuff, (void *)recvbuff, size,
+                            ncclFloat, ncclSum, comm, s));
 
-    //NCCLCHECK(ncclModStreamSync(s));
+    NCCLCHECK(ncclModStreamSync(s));
   }
   CUDACHECK(cudaStreamSynchronize(s1));
   sum_e2e = timer0.end(1);
