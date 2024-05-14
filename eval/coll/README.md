@@ -48,3 +48,51 @@ mpirun -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[nod
 ```
 
 The results will be output to the terminal.
+
+
+### Broadcast
+
+```bash
+# emu
+conda activate emu
+. ./config_release.sh # use release build for nccl and pytorch
+nvcc -lmpi -lnccl -lcudart -O3 ./tests/nccl/broadcast.cu -o ./build/broadcast
+cp ./build/broadcast /tmp/ex
+
+```
+
+```bash
+# ori
+conda activate ori
+. ./config_release.sh # use release build for nccl and pytorch
+nvcc -lmpi -lnccl -lcudart -O3 ./eval/coll/broadcast_ori.cu -o ./build/broadcast_ori
+cp ./build/broadcast_ori /tmp/ex
+
+mpirun -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[node2]:1 --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include enp1s0f0 sh -c "/tmp/ex [#size] [#loop]"
+```
+
+The results will be output to the terminal.
+
+
+### ReduceScatter
+
+```bash
+# emu
+conda activate emu
+. ./config_release.sh # use release build for nccl and pytorch
+nvcc -lmpi -lnccl -lcudart -O3 ./tests/nccl/reducescatter.cu -o ./build/reducescatter
+cp ./build/reducescatter /tmp/ex
+
+```
+
+```bash
+# ori
+conda activate ori
+. ./config_release.sh # use release build for nccl and pytorch
+nvcc -lmpi -lnccl -lcudart -O3 ./eval/coll/reducescatter_ori.cu -o ./build/reducescatter_ori
+cp ./build/reducescatter_ori /tmp/ex
+
+mpirun -x NCCL_PROTO -x NCCL_ALGO --prefix $CONDA_PREFIX -np 2 -H [node1]:1,[node2]:1 --mca pml ob1 --mca btl tcp,self --mca btl_tcp_if_include enp1s0f0 sh -c "/tmp/ex [#size] [#loop]"
+```
+
+The results will be output to the terminal.

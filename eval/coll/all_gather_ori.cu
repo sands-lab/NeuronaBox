@@ -48,7 +48,7 @@ static void getHostName(char *hostname, int maxlen) {
 }
 
 // size is the number of elements
-int run(int myRank, int nRanks, int localRank, int size, int loop,
+int run(int myRank, int nRanks, int localRank, uint64_t size, int loop,
         ncclComm_t &comm) {
   float *sendbuff, *recvbuff;
   cudaStream_t s1;
@@ -81,7 +81,8 @@ int run(int myRank, int nRanks, int localRank, int size, int loop,
 
   printf("[rk%d] average time for sum_e2e: %.3f\n", myRank, 1.0*sum_e2e/loop);
 
-
+  CUDACHECK(cudaFree(sendbuff));
+  CUDACHECK(cudaFree(recvbuff));
   return 0;
 }
 
@@ -91,9 +92,9 @@ int main(int argc, char *argv[]) {
 
   assert(argc == 3);
 
-  int size = atoi(argv[1]);
+  uint64_t size = atoll(argv[1]);
   int loop = atoi(argv[2]);
-  printf("size = %d, loop = %d\n", size, loop);
+  printf("size = %lu, loop = %d\n", size, loop);
 
   int myRank, nRanks, localRank = 0;
   // initializing MPI

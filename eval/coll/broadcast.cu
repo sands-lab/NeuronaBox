@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string>
 #include <unistd.h>
+#include<fstream>
 #define MPICHECK(cmd)                                                          \
   do {                                                                         \
     int e = cmd;                                                               \
@@ -48,21 +49,22 @@ static void getHostName(char *hostname, int maxlen) {
 }
 
 // size is the number of elements
-int run(int myRank, int nRanks, int localRank, uint64_t size, int loop,
+int run(int myRank, int nRanks, int localRank, int size, int loop,
         ncclComm_t &comm) {
   float *sendbuff, *recvbuff;
   cudaStream_t s1;
   CUDACHECK(cudaSetDevice(localRank));
   CUDACHECK(cudaMalloc(&sendbuff, size * sizeof(float)));
-  CUDACHECK(cudaMalloc(&recvbuff, 2*size * sizeof(float)));
+  CUDACHECK(cudaMalloc(&recvbuff, size * sizeof(float)));
   CUDACHECK(cudaMemset(sendbuff, 1, size * sizeof(float)));
-  CUDACHECK(cudaMemset(recvbuff, 0, 2*size * sizeof(float)));
+  CUDACHECK(cudaMemset(recvbuff, 0, size * sizeof(float)));
   CUDACHECK(cudaStreamCreate(&s1));
 
   // warmup
   for (int i = 0; i < 10; ++i) {
     auto &s = s1;
-    NCCLCHECK(ncclAllGather((const void *)sendbuff, (void *)recvbuff, size,ncclFloat,comm, s));
+    NCCLCHECK(ncclBroadcast((const void *)sendbuff, (void *)recvbuff, size,
+                            ncclFloat, 0, comm, s));
     CUDACHECK(cudaStreamSynchronize(s));
     NCCLCHECK(ncclModStreamSync(s));
   }
@@ -70,9 +72,9 @@ int run(int myRank, int nRanks, int localRank, uint64_t size, int loop,
   uint64_t  sum_e2e = 0;
   timer0.begin();
   for (int i = 0; i < loop; ++i) {
-
     auto &s = s1;
-    NCCLCHECK(ncclAllGather((const void *)sendbuff, (void *)recvbuff, size,ncclFloat,comm, s));
+    NCCLCHECK(ncclBroadcast((const void *)sendbuff, (void *)recvbuff, size,
+                            ncclFloat, 0, comm, s));
 
     NCCLCHECK(ncclModStreamSync(s));
   }
@@ -92,9 +94,9 @@ int main(int argc, char *argv[]) {
 
   assert(argc == 3);
 
-  uint64_t size = atoi(argv[1]);
+  int size = atoi(argv[1]);
   int loop = atoi(argv[2]);
-  printf("size = %lu, loop = %d\n", size, loop);
+  printf("size = %d, loop = %d\n", size, loop);
 
   int myRank, nRanks, localRank = 0;
   // initializing MPI
