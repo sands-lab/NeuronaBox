@@ -10,11 +10,10 @@ We also need to setup remote nodes for `mpirun` or `torchrun`, make sure that yo
 
 Suppose $ENV_PATH is the path to the conda environment, then we can use the following command to create a conda environment. We need two environments, we call it `ori` and `emu`. `ori` is the unmodified original code, `emu` is the code with emulator:
 
-We need to install dependencies for both.
+We need to install dependencies for both (i.e. $ENV_PATH=ori or $ENV_PATH=emu)
 
 ```bash
-mkdir ~/my_env
-export $ENV_PATH=~/my_env
+mkdir -p $ENV_PATH
 git submodule update --init --recursive
 bash ./scripts/create_env.sh $ENV_PATH # takes about 30 minutes
 nvcc --version
@@ -23,7 +22,7 @@ nvcc --version
 # Build cuda_11.8.r11.8/compiler.31833905_0
 ```
 
-and keep $ENV_PATH in the config.sh
+We need to keep the $ENV_PATH set in `config.sh`.
 
 ```bash
 touch config.sh
@@ -57,12 +56,13 @@ export NCCL_DEBUG_SUBSYS=ALL
 export NCCL_DEBUG_FILE=your_debug_file.$(date "+%Y-%m-%d %H:%M:%S")_%h:%p%h:%p
 export NCCL_PROTO=Simple
 export NCCL_ALGO=Ring
-export NCCL_BUILD_PATH=your_nccl_build_path, a local file system like /tmp is recommended
-export NVCC_GENCODE="-gencode=arch=compute_[your_compute],code=sm_[your_sm]"
+export NCCL_BUILD_PATH=your_nccl_build_path # a local file system like /tmp is recommended
+# export NVCC_GENCODE="-gencode=arch=compute_[your_compute],code=sm_[your_sm]"
 # export ONLY_FUNCS="AllReduce Sum (f16|f32) RING SIMPLE"
-# you can specify ONLY_FUNCS to reduce compile time
-export ONLY_FUNCS="AllReduce Sum (f16|f32) RING SIMPLE"
+# this two are used to reduce compile time
+
 export DEBUG=1
+
 # for current experiments, we only use 2 nodes, 1 gpu per node
 export CUDA_VISIBLE_DEVICES=0
 export OMPI_COMM_WORLD_SIZE=2
@@ -75,9 +75,9 @@ export NCCL_DEBUG=VERSION
 export NCCL_DEBUG_SUBSYS=INIT
 export NCCL_PROTO=Simple
 export NCCL_ALGO=Ring
-export NCCL_BUILD_PATH=your_nccl_build_path, a local file system like /tmp is recommended
-export NVCC_GENCODE="-gencode=arch=compute_[your_compute],code=sm_[your_sm]"
+export NCCL_BUILD_PATH=your_nccl_build_path # a local file system like /tmp is recommended
 unset ONLY_FUNCS
+unset NVCC_GENCODE
 export DEBUG=0
 # for current experiments, we only use 2 nodes, 1 gpu per node
 export CUDA_VISIBLE_DEVICES=0
@@ -87,11 +87,10 @@ export OMPI_COMM_WORLD_LOCAL_RANK=0
 
 ## Pytorch
 
-After testing the nccl, we can use the nccl in pytorch.
+After building the nccl, we need to build pytorch using our nccl.
 
 ### Build
 
-We have to build python from source, given that we want to use our nccl.
 
 ```bash
 cd pytorch
@@ -113,24 +112,3 @@ torch.cuda.nccl.version() # expect 2.19.4
 
 Please check the README.md in the eval folder for more details.
 
-<!-- ### BERT
-
-We need two terminal to run BERT experiments, one with emulator enabled, one with oringal(unmodifed) code, we refer the first as `emu` and the second as `ori`.
-
-```bash
-# emu
-conda activate emu
-. ./config_release.sh # use release build for nccl and pytorch
-cd eval/BERT
-CUDA_VISIBLE_DEVICES=0 OMPI_COMM_WORLD_SIZE=2 OMPI_COMM_WORLD_LOCAL_RANK=0 OMPI_COMM_WORLD_RANK=0 MOD_KERNEL_BYPASS=1 ./run.sh
-```
-
-```bash
-# ori
-conda activate ori
-. ./config_release.sh # use release build for nccl and pytorch
-cd eval/BERT
-CUDA_VISIBLE_DEVICES=0 OMPI_COMM_WORLD_SIZE=2 OMPI_COMM_WORLD_LOCAL_RANK=0 OMPI_COMM_WORLD_RANK=1 MOD_KERNEL_BYPASS=0 ./run.sh
-```
-
-The result is saved in `eval/BERT/results`. -->
