@@ -2,15 +2,19 @@
 
 ## Prerequisite
 
-We need `mamba` or `conda` installed before. You can install mamba [here](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html)
+First, please update the submodule for the project.
+
+```bash
+git submodule update --init --recursive
+```
+
+Second, we need `mamba` or `conda` installed. You can install mamba [here](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html)
 
 We also need to setup remote nodes for `mpirun` or `torchrun`, make sure that you have `/etc/hosts` and `~/.ssh/config` properly configured. (i.e. you can ssh to the remote nodes using hostname without password)
 
 ## Conda Environment
 
-Suppose $ENV_PATH is the path to the conda environment, then we can use the following command to create a conda environment. We need two environments, we call it `ori` and `emu`. `ori` is the unmodified original code, `emu` is the code with emulator:
-
-We need to install dependencies for both (i.e. $ENV_PATH=ori or $ENV_PATH=emu)
+Suppose $ENV_PATH is the path to the conda environment, then we can use the following command to create a conda environment. We need two environments, we call it `ori` and `emu`. `ori` is the unmodified original code, `emu` is the code for emulator. We use environment variable `ENV_PATH` to specify the path to the conda environment. In this example, we set the `ENV_PATH=~/neurona/ori` or `ENV_PATH=~/neurona/emu` for `ori` and `emu` respectively.
 
 ```bash
 mkdir -p $ENV_PATH
