@@ -1,6 +1,6 @@
 [submodule "nccl"]
 	path = nccl
-	url = git@github.com:livingshade/nccl.git
+	url = git@github.com:sands-lab/NeuronaBox-NCCL.git
 [submodule "pytorch"]
 	path = pytorch
-	url = git@github.com:livingshade/pytorch.git
+	url = git@github.com:sands-lab/NeuronaBox-PyTorch.git
