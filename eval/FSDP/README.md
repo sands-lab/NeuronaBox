@@ -71,26 +71,4 @@ export MASTER_PORT=29500
 python T5_training.py
 ```
 
-## Result
-ori+ori
-ori0:
-```
-Average of the middle 1/3 batches: 4.175779 seconds
-Standard deviation of the middle 1/3 batches: 0.000653 
-```
-ori1:
-```
-Average of the middle 1/3 batches: 4.175880 seconds
-Standard deviation of the middle 1/3 batches: 0.000761 
-```
-emu+ori
-ori:
-```
-Average of the middle 1/3 batches: 4.174978 seconds
-Standard deviation of the middle 1/3 batches: 0.004396 
-```
-emu:
-```
-Average of the middle 1/3 batches: 4.628805 seconds
-Standard deviation of the middle 1/3 batches: 0.004433 
-```
+
