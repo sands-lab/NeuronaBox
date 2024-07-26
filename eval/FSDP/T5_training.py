@@ -201,13 +201,13 @@ if __name__ == '__main__':
                         help='input batch size for training (default: 64)')
     parser.add_argument('--test-batch-size', type=int, default=4, metavar='N',
                         help='input batch size for testing (default: 1000)')
-    parser.add_argument('--epochs', type=int, default=2, metavar='N',
+    parser.add_argument('--epochs', type=int, default=1, metavar='N',
                         help='number of epochs to train (default: 3)')
     parser.add_argument('--seed', type=int, default=1, metavar='S',
                         help='random seed (default: 1)')
-    parser.add_argument('--track_memory', action='store_false', default=True,
+    parser.add_argument('--track_memory', action='store_false', default=False,
                         help='track the gpu memory')
-    parser.add_argument('--run_validation', action='store_false', default=True,
+    parser.add_argument('--run_validation', action='store_false', default=False,
                         help='running the validation')
     args = parser.parse_args()
 

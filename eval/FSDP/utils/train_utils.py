@@ -5,7 +5,7 @@ from datetime import datetime
 import tqdm
 from transformers import AutoTokenizer, GPT2TokenizerFast
 from transformers import T5Tokenizer, T5ForConditionalGeneration
-
+import time
 g_gigabyte = 1024**3
 
 def setup():
@@ -39,29 +39,32 @@ def train(args, model, rank, world_size, train_loader, optimizer, epoch, sampler
   
     if sampler:
         sampler.set_epoch(epoch)
-    if rank==0:
-        inner_pbar = tqdm.tqdm(
-            range(len(train_loader)), colour="blue", desc="r0 Training Epoch"
-        )
+    # if rank==0:
+    #     inner_pbar = tqdm.tqdm(
+    #         range(len(train_loader)), colour="blue", desc="r0 Training Epoch"
+    #     )
+    
     for batch in train_loader:
         for key in batch.keys():
             batch[key] = batch[key].to(local_rank)
+        start_time = time.time()
         optimizer.zero_grad()
         output = model(input_ids=batch["source_ids"],attention_mask=batch["source_mask"],labels=batch["target_ids"] )
         loss = output["loss"]
         loss.backward()
         optimizer.step()
+        end_time = time.time()
         fsdp_loss[0] += loss.item()
         fsdp_loss[1] += len(batch)
-        if rank==0:
-            inner_pbar.update(1)
+        # if rank==0:
+        #     inner_pbar.update(1)
 
     dist.all_reduce(fsdp_loss, op=dist.ReduceOp.SUM)
     train_accuracy = fsdp_loss[0] / fsdp_loss[1]
 
 
     if rank == 0:
-        inner_pbar.close()
+        # inner_pbar.close()
         print(
                 f"Train Epoch: \t{epoch}, Loss: \t{train_accuracy:.4f}"
             )

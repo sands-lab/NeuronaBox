@@ -1,24 +1,25 @@
-## FSDP T5
-To run the T5 example with FSDP for text summarization:
+# FSDP experiment
 
-## Original Link
-For more details, visit the original link: https://github.com/pytorch/examples/tree/main/distributed/FSDP
+To run the T5 training example to test the usage of FSDP. This is adapted from PyTorch [examples](https://github.com/pytorch/examples/tree/main/distributed/FSDP)
 
+## Setup
 
-## Get the wikihow dataset
+Get the wikihow dataset
+
 ```bash
-
 sh download_dataset.sh
-
 ```
 
-## Install the requirements:
-~~~
+Install the requirements:
+
+```
+conda activate $ENV_PATH
 pip install -r requirements.txt
-~~~
+```
 
+## Training
 
-## Start the training 
+We need to run the training script on two nodes as always.
 
 Configuration for Node 1 (emu)
 
@@ -38,7 +39,7 @@ export OMPI_COMM_WORLD_RANK=0
 # a local file system like /tmp/*** is recommended
 export TRANSFORMERS_CACHE=/tmp/fsdp_transformers_cache/
 export HF_HOME=/tmp/fsdp_hf_home/
-export HF_DATASETS_CACHE=/tmp/fsdp_datasets_cache/# a local file system like /tmp is recommended
+export HF_DATASETS_CACHE=/tmp/fsdp_datasets_cache/
 
 python T5_training.py
 ```
