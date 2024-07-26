@@ -41,6 +41,9 @@ export TRANSFORMERS_CACHE=/tmp/fsdp_transformers_cache/
 export HF_HOME=/tmp/fsdp_hf_home/
 export HF_DATASETS_CACHE=/tmp/fsdp_datasets_cache/
 
+export MASTER_ADDR=your_ip_address
+export MASTER_PORT=29500
+
 python T5_training.py
 ```
 
@@ -59,6 +62,9 @@ export WORLD_SIZE=2
 export TRANSFORMERS_CACHE=/tmp/fsdp_transformers_cache/
 export HF_HOME=/tmp/fsdp_hf_home/
 export HF_DATASETS_CACHE=/tmp/fsdp_datasets_cache/
+
+export MASTER_ADDR=equal_to_above
+export MASTER_PORT=29500
 
 python T5_training.py
 ```
