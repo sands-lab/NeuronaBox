@@ -58,6 +58,8 @@ export LOCAL_RANK=0
 export RANK=1
 export WORLD_SIZE=2
 
+export MOD_KERNEL_BYPASS=0
+
 # a local file system like /tmp/*** is recommended
 export TRANSFORMERS_CACHE=/tmp/fsdp_transformers_cache/
 export HF_HOME=/tmp/fsdp_hf_home/
