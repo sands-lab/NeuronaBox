@@ -1,3 +1,5 @@
 __pycache__/
+log_file/
+tmp/
 *.pt
 *.csv

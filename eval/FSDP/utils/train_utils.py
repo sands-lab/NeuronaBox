@@ -6,6 +6,8 @@ import tqdm
 from transformers import AutoTokenizer, GPT2TokenizerFast
 from transformers import T5Tokenizer, T5ForConditionalGeneration
 import time
+import numpy as np
+from torch.profiler import profile, record_function, ProfilerActivity
 g_gigabyte = 1024**3
 
 def setup():
@@ -32,33 +34,89 @@ def format_metrics_to_gb(item):
     metric_num = round(metric_num, ndigits=4)
     return metric_num
 
+
+#test
+def calculate_time_stats(log_file_path):
+    #only work for 1 epoch!
+    with open(log_file_path, 'r') as log_file:
+        log_content = log_file.read()
+    
+    if "middle" in log_content:
+        print("err")
+        return
+
+    with open(log_file_path, 'r') as log_file:
+        times = [float(line.strip()) for line in log_file]
+    
+    if len(times) == 0:
+        print("err")
+        return
+    
+
+    times.sort()
+    
+
+    n = len(times)
+    trimmed_times = times[n//3: 2*n//3]
+    
+
+    mean_time = np.mean(trimmed_times)
+    std_time = np.std(trimmed_times)
+    
+    stats_result = f"Average of the middle 1/3 batches: {mean_time:.6f} seconds\nStandard deviation of the middle 1/3 batches: {std_time:.6f} \n"
+    
+    print(stats_result)
+    
+    with open(log_file_path, 'a') as log_file:
+        log_file.write(stats_result)
+#test
+
+
 def train(args, model, rank, world_size, train_loader, optimizer, epoch, sampler=None):
     model.train()
     local_rank = int(os.environ['LOCAL_RANK'])
     fsdp_loss = torch.zeros(2).to(local_rank)
-  
+    
+    
+    #test
+    # time_rank=get_date_of_run()+'RANK_'+("1" if int(os.environ["RANK"]) == 1 else "0")
+    # log_file_path = "./log_file/log_time_"+ time_rank
+    # print(log_file_path)
+    # os.makedirs('./log_file/', exist_ok=True)
+    # open(log_file_path, 'w').close()
+    #test
+    
     if sampler:
         sampler.set_epoch(epoch)
     # if rank==0:
     #     inner_pbar = tqdm.tqdm(
     #         range(len(train_loader)), colour="blue", desc="r0 Training Epoch"
     #     )
-    
     for batch in train_loader:
         for key in batch.keys():
             batch[key] = batch[key].to(local_rank)
         start_time = time.time()
-        optimizer.zero_grad()
+        if int(os.environ["MOD_KERNEL_BYPASS"]) != 1:
+            optimizer.zero_grad()
         output = model(input_ids=batch["source_ids"],attention_mask=batch["source_mask"],labels=batch["target_ids"] )
         loss = output["loss"]
         loss.backward()
-        optimizer.step()
+        if int(os.environ["MOD_KERNEL_BYPASS"]) != 1:
+            optimizer.step()
         end_time = time.time()
         fsdp_loss[0] += loss.item()
         fsdp_loss[1] += len(batch)
         # if rank==0:
         #     inner_pbar.update(1)
 
+        #test
+    #     time_diff = end_time - start_time
+    #     with open(log_file_path, 'a') as log_file:
+    #         log_file.write(f'{time_diff:.6f}\n')
+               
+    # calculate_time_stats(log_file_path)    
+    #test
+    
     dist.all_reduce(fsdp_loss, op=dist.ReduceOp.SUM)
     train_accuracy = fsdp_loss[0] / fsdp_loss[1]
 
