@@ -79,11 +79,11 @@ def train(args, model, rank, world_size, train_loader, optimizer, epoch, sampler
     
     
     #test
-    time_rank=get_date_of_run()+'RANK_'+("1" if int(os.environ["RANK"]) == 1 else "0")
-    log_file_path = "./log_file/log_time_"+ time_rank
-    print(log_file_path)
-    os.makedirs('./log_file/', exist_ok=True)
-    open(log_file_path, 'w').close()
+    # time_rank=get_date_of_run()+'RANK_'+("1" if int(os.environ["RANK"]) == 1 else "0")
+    # log_file_path = "./log_file/log_time_"+ time_rank
+    # print(log_file_path)
+    # os.makedirs('./log_file/', exist_ok=True)
+    # open(log_file_path, 'w').close()
     #test
     
     if sampler:
@@ -92,31 +92,29 @@ def train(args, model, rank, world_size, train_loader, optimizer, epoch, sampler
     #     inner_pbar = tqdm.tqdm(
     #         range(len(train_loader)), colour="blue", desc="r0 Training Epoch"
     #     )
-    with profile(activities=[ProfilerActivity.CUDA, ProfilerActivity.CPU], record_shapes=True, use_cuda=True) as prof:
-        for batch in train_loader:
-            for key in batch.keys():
-                batch[key] = batch[key].to(local_rank)
-            start_time = time.time()
-            if int(os.environ["MOD_KERNEL_BYPASS"]) != 1:
-                optimizer.zero_grad()
-            output = model(input_ids=batch["source_ids"],attention_mask=batch["source_mask"],labels=batch["target_ids"] )
-            loss = output["loss"]
-            loss.backward()
-            if int(os.environ["MOD_KERNEL_BYPASS"]) != 1:
-                optimizer.step()
-            end_time = time.time()
-            fsdp_loss[0] += loss.item()
-            fsdp_loss[1] += len(batch)
-            # if rank==0:
-            #     inner_pbar.update(1)
+    for batch in train_loader:
+        for key in batch.keys():
+            batch[key] = batch[key].to(local_rank)
+        start_time = time.time()
+        if int(os.environ["MOD_KERNEL_BYPASS"]) != 1:
+            optimizer.zero_grad()
+        output = model(input_ids=batch["source_ids"],attention_mask=batch["source_mask"],labels=batch["target_ids"] )
+        loss = output["loss"]
+        loss.backward()
+        if int(os.environ["MOD_KERNEL_BYPASS"]) != 1:
+            optimizer.step()
+        end_time = time.time()
+        fsdp_loss[0] += loss.item()
+        fsdp_loss[1] += len(batch)
+        # if rank==0:
+        #     inner_pbar.update(1)
 
-            #test
-            time_diff = end_time - start_time
-            with open(log_file_path, 'a') as log_file:
-                log_file.write(f'{time_diff:.6f}\n')
-    prof.export_chrome_trace("./tmp/"+time_rank+".json")
+        #test
+    #     time_diff = end_time - start_time
+    #     with open(log_file_path, 'a') as log_file:
+    #         log_file.write(f'{time_diff:.6f}\n')
                
-    calculate_time_stats(log_file_path)    
+    # calculate_time_stats(log_file_path)    
     #test
     
     dist.all_reduce(fsdp_loss, op=dist.ReduceOp.SUM)
