@@ -13,8 +13,10 @@ conda activate $ENV_PATH
 
 set -ex
 
+export CONDA_LIBMAMBA_SOLVER_NO_CHANNELS_FROM_INSTALLED=1
+
 mamba install -y cmake ninja
-mamba install -y intel::mkl-static intel::mkl-include
+mamba install -y mkl-static mkl-include -c https://software.repos.intel.com/python/conda --override-channels
 mamba install -y -c pytorch magma-cuda118 # 11.8 is our cuda version
 
 cd pytorch
