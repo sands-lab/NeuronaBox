@@ -26,7 +26,7 @@ export CMAKE_PREFIX_PATH=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}
 export NCCL_INCLUDE_DIR="$CONDA_PREFIX/include/" 
 export NCCL_LIB_DIR="$CONDA_PREFIX/lib" 
 
-USE_SYSTEM_NCCL=1 python setup.py develop
+USE_SYSTEM_NCCL=1 BUILD_CAFFE2=1 python setup.py develop
 
 # then wait for the build to finish
 
